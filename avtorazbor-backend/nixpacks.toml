@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python311", "gcc", "libffi", "openssl"]
+
+[phases.install]
+cmds = ["pip install -e '.[dev]'"]
+
+[start]
+cmd = "gunicorn app.wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
