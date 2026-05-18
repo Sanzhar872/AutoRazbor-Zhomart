@@ -1,4 +1,4 @@
-import React from 'react'
+import type { CSSProperties } from 'react'
 import { useThemeStore } from '@/store/theme.store'
 
 /* ── Deterministic star positions ── */
