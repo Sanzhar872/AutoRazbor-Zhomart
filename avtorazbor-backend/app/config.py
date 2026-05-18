@@ -11,8 +11,15 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production"
     LOG_LEVEL: str = "INFO"
 
-    # Database
+    # Database (Railway provides postgresql://, we normalise to postgresql+psycopg2://)
     DATABASE_URL: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/avtorazbor"
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def fix_db_url(cls, v: str) -> str:
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return v
 
     # JWT
     JWT_SECRET_KEY: str = "change-me-jwt-secret"
