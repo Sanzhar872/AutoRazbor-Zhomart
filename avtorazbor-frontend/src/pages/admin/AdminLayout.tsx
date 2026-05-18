@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/cn'
 
 const links = [
-  { to: ROUTES.ADMIN, icon: LayoutDashboard, label: 'Дашборд', end: true },
+  { to: ROUTES.ADMIN, icon: LayoutDashboard, label: 'Журнал', end: true },
   { to: ROUTES.ADMIN_PARTS, icon: Package, label: 'Запчасти' },
   { to: ROUTES.ADMIN_STOCK, icon: BarChart3, label: 'Склад' },
   { to: ROUTES.ADMIN_CARS, icon: Car, label: 'Автомобили' },

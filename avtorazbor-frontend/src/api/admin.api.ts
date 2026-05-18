@@ -14,6 +14,8 @@ export interface SaleRecord {
   part_id: string
   title: string
   slug: string
+  price_kzt: number
+  profit: number
   delta: number
   stock_before: number | null
   stock_after: number | null
@@ -30,6 +32,7 @@ export interface DashboardData {
   sold_total: number
   recent_sales: SaleRecord[]
   top_favorites: Array<{ id: string; title: string; favorites: number }>
+  revenue: { today: number; week: number; month: number }
 }
 
 export const adminApi = {
