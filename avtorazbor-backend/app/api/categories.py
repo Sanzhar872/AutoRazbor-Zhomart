@@ -14,6 +14,17 @@ from datetime import datetime, timezone
 bp = Blueprint("categories", __name__, url_prefix="/api/v1/categories")
 
 
+def _strip_deleted(cats: list) -> list:
+    """Recursively remove soft-deleted children so they don't appear in API."""
+    result = []
+    for cat in cats:
+        if cat.deleted_at:
+            continue
+        cat.children = _strip_deleted(cat.children)
+        result.append(cat)
+    return result
+
+
 @bp.get("/")
 def list_categories() -> tuple[Response, int]:
     roots = list(db.session.execute(
@@ -21,6 +32,7 @@ def list_categories() -> tuple[Response, int]:
         .where(Category.parent_id.is_(None), Category.deleted_at.is_(None))
         .order_by(Category.sort_order, Category.name)
     ).scalars())
+    roots = _strip_deleted(roots)
     return jsonify(CategorySchema(many=True).dump(roots)), 200
 
 
@@ -65,8 +77,14 @@ def update_category(cat_id: str) -> tuple[Response, int]:
 @bp.delete("/<cat_id>")
 @require_role("admin")
 def delete_category(cat_id: str) -> tuple[Response, int]:
-    cat = db.session.get(Category, uuid.UUID(cat_id))
-    if not cat or cat.deleted_at:
+    try:
+        cat_uuid = uuid.UUID(cat_id)
+    except (ValueError, AttributeError):
+        raise NotFoundError("Категория не найдена")
+    cat = db.session.execute(
+        select(Category).where(Category.id == cat_uuid, Category.deleted_at.is_(None))
+    ).scalar_one_or_none()
+    if not cat:
         raise NotFoundError("Категория не найдена")
     cat.deleted_at = datetime.now(timezone.utc)
     db.session.commit()

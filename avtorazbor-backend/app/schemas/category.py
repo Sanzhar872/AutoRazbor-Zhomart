@@ -2,13 +2,19 @@ from marshmallow import Schema, fields, validate
 
 
 class CategorySchema(Schema):
-    id = fields.UUID()
+    id = fields.Method("get_id")
     name = fields.String()
     slug = fields.String()
     icon_url = fields.String(allow_none=True)
     sort_order = fields.Integer()
-    parent_id = fields.UUID(allow_none=True)
+    parent_id = fields.Method("get_parent_id")
     children = fields.List(fields.Nested(lambda: CategorySchema()))
+
+    def get_id(self, obj) -> str:
+        return str(obj.id)
+
+    def get_parent_id(self, obj):
+        return str(obj.parent_id) if obj.parent_id else None
 
 
 class CategoryCreateSchema(Schema):
