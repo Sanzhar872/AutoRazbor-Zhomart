@@ -1,0 +1,23 @@
+# Python / Backend
+avtorazbor-backend/venv/
+avtorazbor-backend/__pycache__/
+avtorazbor-backend/**/__pycache__/
+avtorazbor-backend/*.pyc
+avtorazbor-backend/*.pyo
+avtorazbor-backend/.pytest_cache/
+avtorazbor-backend/*.egg-info/
+avtorazbor-backend/dist/
+avtorazbor-backend/.mypy_cache/
+avtorazbor-backend/uploads/
+
+# Frontend
+avtorazbor-frontend/node_modules/
+avtorazbor-frontend/dist/
+avtorazbor-frontend/.vite/
+
+# Env files (keep .env.example, ignore actual .env)
+avtorazbor-backend/.env
+
+# OS
+.DS_Store
+Thumbs.db
