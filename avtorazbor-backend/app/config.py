@@ -29,9 +29,14 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: str = "http://localhost:5173"
 
-    # GCS
+    # GCS (legacy)
     GCS_BUCKET_NAME: str = "avtorazbor-media"
     GOOGLE_APPLICATION_CREDENTIALS: str = ""
+
+    # Cloudinary (preferred image storage)
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
 
     # Contact info (returned by /api/v1/config)
     CONTACT_PHONE: str = "+70000000000"
