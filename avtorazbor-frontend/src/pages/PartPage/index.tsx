@@ -1,0 +1,207 @@
+import { useParams, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
+import { ChevronRight, Phone, MessageCircle } from 'lucide-react'
+import { usePart } from '@/hooks/useParts'
+import { resolveUrl } from '@/lib/resolveUrl'
+import { Spinner } from '@/components/ui/Spinner'
+import { Badge } from '@/components/ui/Badge'
+import { PageContainer } from '@/components/layout/PageContainer'
+import { PartConditionBadge } from '@/components/parts/PartConditionBadge'
+import { FavoriteButton } from '@/components/favorites/FavoriteButton'
+import { FavoriteSlotBar } from '@/components/favorites/FavoriteSlotBar'
+import { StickyCallBar } from '@/components/phone/StickyCallBar'
+import { formatPrice } from '@/lib/formatPrice'
+import { ROUTES } from '@/constants/routes'
+import { useConfig } from '@/hooks/useConfig'
+
+export function PartPage() {
+  const { slug = '' } = useParams<{ slug: string }>()
+  const { data: part, isLoading, error } = usePart(slug)
+  const { data: config } = useConfig()
+
+  if (isLoading) {
+    return (
+      <PageContainer className="flex items-center justify-center min-h-[40vh]">
+        <Spinner size="lg" />
+      </PageContainer>
+    )
+  }
+
+  if (error || !part) {
+    return (
+      <PageContainer className="text-center py-16">
+        <p className="text-text-secondary">Запчасть не найдена</p>
+        <Link to={ROUTES.CATALOG} className="text-accent text-sm mt-2 inline-block hover:underline">
+          Вернуться в каталог
+        </Link>
+      </PageContainer>
+    )
+  }
+
+  const primaryImage = part.images.find((i) => i.is_primary) ?? part.images[0]
+
+  return (
+    <>
+      <Helmet>
+        <title>{part.title} — {formatPrice(part.price_kzt)} | АвтоРазбор</title>
+        <meta name="description" content={`Б/У ${part.title}. ${part.description ?? ''} Звоните!`} />
+        {primaryImage && <meta property="og:image" content={primaryImage.public_url} />}
+      </Helmet>
+
+      <PageContainer className="pb-32 md:pb-8">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-1.5 text-xs text-text-muted mb-4 flex-wrap">
+          <Link to={ROUTES.CATALOG} className="hover:text-text-secondary">Каталог</Link>
+          <ChevronRight size={12} />
+          <Link
+            to={`${ROUTES.CATALOG}?category_id=${part.category.id}`}
+            className="hover:text-text-secondary"
+          >
+            {part.category.name}
+          </Link>
+          <ChevronRight size={12} />
+          <span className="text-text-secondary truncate max-w-[200px]">{part.title}</span>
+        </nav>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Gallery */}
+          <div className="space-y-3">
+            <div className="aspect-square bg-bg-surface border border-border rounded-lg overflow-hidden">
+              {primaryImage ? (
+                <img
+                  src={resolveUrl(primaryImage.public_url)}
+                  alt={part.title}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">
+                  Нет фотографии
+                </div>
+              )}
+            </div>
+            {part.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {part.images.map((img) => (
+                  <div
+                    key={img.id}
+                    className="flex-shrink-0 w-16 h-16 bg-bg-surface border border-border rounded-md overflow-hidden cursor-pointer hover:border-accent transition-colors"
+                  >
+                    <img src={resolveUrl(img.public_url)} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="flex flex-col gap-4">
+            <h1 className="text-xl md:text-2xl font-semibold text-text-primary leading-snug">
+              {part.title}
+            </h1>
+
+            {/* Badges */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <PartConditionBadge condition={part.condition} />
+              {part.status === 'sold_out' && <Badge variant="danger">Нет в наличии</Badge>}
+              {part.stock > 0 && (
+                <Badge variant="neutral">{part.stock} шт в наличии</Badge>
+              )}
+            </div>
+
+            {/* Price */}
+            <p className="text-2xl md:text-3xl font-bold text-text-primary">
+              {formatPrice(part.price_kzt)}
+            </p>
+
+            {/* OEM / SKU */}
+            {(part.oem_number || part.sku) && (
+              <div className="flex flex-col gap-1">
+                {part.oem_number && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-text-muted w-16 flex-shrink-0">OEM:</span>
+                    <code className="font-mono text-text-secondary bg-bg-elevated px-2 py-0.5 rounded text-xs">
+                      {part.oem_number}
+                    </code>
+                  </div>
+                )}
+                {part.sku && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-text-muted w-16 flex-shrink-0">Артикул:</span>
+                    <code className="font-mono text-text-secondary bg-bg-elevated px-2 py-0.5 rounded text-xs">
+                      {part.sku}
+                    </code>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Compatibility */}
+            {part.car_generations.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm text-text-muted">Подходит для:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {part.car_generations.map((g) => (
+                    <Badge key={g.id} variant="neutral">
+                      {g.make_name} {g.model_name} {g.name}
+                      {g.year_from ? ` ${g.year_from}–${g.year_to ?? '...'}` : ''}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-border" />
+
+            {/* Favorite block */}
+            {part.favorite_meta && (
+              <div className="flex flex-col gap-2">
+                <FavoriteSlotBar meta={part.favorite_meta} />
+                <FavoriteButton
+                  partId={part.id}
+                  partSlug={part.slug}
+                  meta={part.favorite_meta}
+                />
+              </div>
+            )}
+
+            {/* Call block — desktop */}
+            {config && (
+              <div className="hidden md:flex flex-col gap-2 bg-bg-surface border border-border rounded-lg p-4">
+                <p className="text-sm text-text-secondary">Для покупки позвоните:</p>
+                <a
+                  href={`tel:${config.contact_phone}`}
+                  className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-accent transition-colors"
+                >
+                  <Phone size={20} className="text-accent" />
+                  {config.contact_phone_display}
+                </a>
+                <p className="text-xs text-text-muted">{config.working_hours}</p>
+                <a
+                  href={config.whatsapp_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-success hover:underline"
+                >
+                  <MessageCircle size={15} />
+                  Написать в WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Description */}
+        {part.description && (
+          <div className="mt-8 bg-bg-surface border border-border rounded-lg p-5">
+            <h2 className="font-semibold text-text-primary mb-3">Описание</h2>
+            <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">
+              {part.description}
+            </p>
+          </div>
+        )}
+      </PageContainer>
+
+      <StickyCallBar />
+    </>
+  )
+}

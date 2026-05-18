@@ -1,0 +1,17 @@
+export const ROUTES = {
+  HOME: '/',
+  CATALOG: '/catalog',
+  PART: (slug: string) => `/catalog/${slug}`,
+  SEARCH: '/search',
+  FAVORITES: '/favorites',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  PROFILE: '/profile',
+  ADMIN: '/admin',
+  ADMIN_PARTS: '/admin/parts',
+  ADMIN_PART_NEW: '/admin/parts/new',
+  ADMIN_PART_EDIT: (id: string) => `/admin/parts/${id}/edit`,
+  ADMIN_STOCK: '/admin/stock',
+  ADMIN_CARS: '/admin/cars',
+  ADMIN_CATEGORIES: '/admin/categories',
+} as const

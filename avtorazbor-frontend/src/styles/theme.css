@@ -1,0 +1,59 @@
+/* ── DARK THEME (default) — серо-тёмные оттенки, не чистый чёрный ── */
+[data-theme="dark"] {
+  --bg-base:      #1C1C1F;   /* главный фон — тёмно-серый */
+  --bg-surface:   #25252A;   /* карточки, сайдбар */
+  --bg-elevated:  #2E2E34;   /* модалки, дропдауны */
+  --bg-input:     #35353C;   /* поля ввода */
+
+  --accent:       #E53E3E;
+  --accent-hover: #C53030;
+  --accent-muted: rgba(229, 62, 62, 0.15);
+
+  --text-primary:   #F0F0F2;
+  --text-secondary: #9A9AA8;
+  --text-muted:     #5E5E6E;
+
+  --border:       #33333C;
+  --border-focus: #E53E3E;
+
+  --success: #38A169;
+  --warning: #D69E2E;
+  --danger:  #E53E3E;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+
+  color-scheme: dark;
+}
+
+/* ── LIGHT THEME ── */
+[data-theme="light"] {
+  --bg-base:      #F2F2F5;
+  --bg-surface:   #FFFFFF;
+  --bg-elevated:  #FAFAFA;
+  --bg-input:     #EBEBEF;
+
+  --accent:       #D63232;
+  --accent-hover: #B52A2A;
+  --accent-muted: rgba(214, 50, 50, 0.12);
+
+  --text-primary:   #18181B;
+  --text-secondary: #52525B;
+  --text-muted:     #A1A1AA;
+
+  --border:       #E4E4E7;
+  --border-focus: #D63232;
+
+  --success: #16A34A;
+  --warning: #CA8A04;
+  --danger:  #D63232;
+
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.08);
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+
+  color-scheme: light;
+}
