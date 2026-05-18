@@ -139,7 +139,7 @@ export function StockPage() {
                             <button
                               onClick={() => open(item, 'sold')}
                               disabled={item.stock === 0}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-danger/10 text-danger border border-danger/20 hover:bg-danger hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <ShoppingCart size={13} />
                               Продано
@@ -170,11 +170,8 @@ export function StockPage() {
         {selected && (
           <div className="flex flex-col gap-4">
             {/* Part info */}
-            <div className={cn(
-              'flex items-start gap-3 p-3 rounded-lg border',
-              mode === 'sold' ? 'bg-danger/5 border-danger/20' : 'bg-success/5 border-success/20'
-            )}>
-              <Package size={18} className={mode === 'sold' ? 'text-danger mt-0.5' : 'text-success mt-0.5'} />
+            <div className="flex items-start gap-3 p-3 rounded-lg border bg-success/5 border-success/20">
+              <Package size={18} className="text-success mt-0.5" />
               <div>
                 <p className="font-medium text-text-primary text-sm">{selected.title}</p>
                 <p className="text-xs text-text-muted mt-0.5">
@@ -248,12 +245,7 @@ export function StockPage() {
                 onClick={handleConfirm}
                 loading={isPending}
                 disabled={!qty || Number(qty) < 1 || (mode === 'sold' && Number(qty) > selected.stock)}
-                className={cn(
-                  'flex-1',
-                  mode === 'sold'
-                    ? 'bg-danger hover:bg-danger/80'
-                    : 'bg-success hover:bg-success/80'
-                )}
+                className="flex-1 bg-success hover:bg-success/80"
               >
                 {mode === 'sold' ? `Продано ${qty} шт` : `Вернуть ${qty} шт`}
               </Button>

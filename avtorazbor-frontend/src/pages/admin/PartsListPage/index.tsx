@@ -139,10 +139,8 @@ export function PartsListPage() {
                           <td className="px-4 py-3 text-text-secondary hidden md:table-cell">
                             {part.category.name}
                           </td>
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                            <span className="font-semibold text-accent">
-                              {formatPrice(part.price_kzt)}
-                            </span>
+                          <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-text-primary">
+                            {formatPrice(part.price_kzt)}
                           </td>
                           <td className="px-4 py-3 text-right hidden lg:table-cell">
                             <span className={
