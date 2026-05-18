@@ -1,17 +1,18 @@
 #!/bin/sh
 set -e
 
-echo "==> All environment variables (values hidden):"
-env | sed 's/=.*/=***/' | sort
-
-echo "==> Checking DATABASE_URL..."
 if [ -z "$DATABASE_URL" ]; then
-  echo "ERROR: DATABASE_URL not found in environment."
+  echo "ERROR: DATABASE_URL is not set."
   exit 1
 fi
 
-echo "==> DATABASE_URL is set, running migrations..."
+export DATABASE_URL
+
+echo "==> Running database migrations..."
 flask db upgrade
+
+echo "==> Seeding admin user..."
+python scripts/seed_admin.py
 
 echo "==> Starting gunicorn on port ${PORT:-8080}..."
 exec gunicorn app.wsgi:app \

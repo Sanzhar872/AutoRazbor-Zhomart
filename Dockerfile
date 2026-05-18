@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -e ".[prod]"
 COPY avtorazbor-backend/app/ ./app/
 COPY avtorazbor-backend/migrations/ ./migrations/
 COPY avtorazbor-backend/alembic.ini ./
+COPY avtorazbor-backend/scripts/ ./scripts/
 COPY start.sh ./start.sh
 RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
