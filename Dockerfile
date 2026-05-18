@@ -13,7 +13,7 @@ COPY avtorazbor-backend/app/ ./app/
 COPY avtorazbor-backend/migrations/ ./migrations/
 COPY avtorazbor-backend/alembic.ini ./
 COPY start.sh ./start.sh
-RUN chmod +x ./start.sh
+RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
 ENV FLASK_APP=app.wsgi
 EXPOSE 8080
