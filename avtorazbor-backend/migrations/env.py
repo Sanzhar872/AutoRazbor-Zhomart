@@ -1,22 +1,14 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 from alembic import context
 
 config = context.config
 
-if config.config_file_name is not None:
-    import os
-    if os.path.exists(config.config_file_name):
-        fileConfig(config.config_file_name)
+if config.config_file_name is not None and os.path.exists(config.config_file_name):
+    fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url from env if set
-db_url = os.environ.get("DATABASE_URL")
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
-
-# Import all models so Alembic detects them
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -24,10 +16,19 @@ from app.models import Base  # noqa: E402
 target_metadata = Base.metadata
 
 
+def get_url() -> str:
+    url = os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url", "")
+    if not url:
+        raise RuntimeError("DATABASE_URL is not set. Add it as an environment variable.")
+    # Railway provides postgresql://, SQLAlchemy needs postgresql+psycopg2://
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    return url
+
+
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=url,
+        url=get_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -37,11 +38,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(get_url(), poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
