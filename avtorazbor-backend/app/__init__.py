@@ -25,7 +25,17 @@ def create_app() -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": settings.cors_origins_list}})
+    origins = settings.cors_origins_list
+    # supports_credentials=True is incompatible with wildcard origin
+    use_credentials = origins != ["*"]
+    cors.init_app(app, resources={r"/api/*": {
+        "origins": origins,
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+        "expose_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": use_credentials,
+        "max_age": 3600,
+    }})
     limiter.init_app(app)
 
     # Logging
