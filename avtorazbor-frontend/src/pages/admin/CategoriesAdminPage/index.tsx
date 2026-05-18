@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Plus, ChevronRight, Trash2, Edit } from 'lucide-react'
+import { Plus, ChevronRight, ChevronDown, Trash2, Edit } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { client, getApiError } from '@/api/client'
@@ -147,18 +147,39 @@ function CategoryRow({
   onEdit: (cat: Category) => void
   onDelete: (id: string) => void
 }) {
+  const hasChildren = cat.children.length > 0
+  const [open, setOpen] = useState(true)
+
   return (
     <>
       <div
-        className="flex items-center gap-2 px-4 py-2.5 hover:bg-bg-elevated transition-colors group"
-        style={{ paddingLeft: `${16 + depth * 20}px` }}
+        className="flex items-center gap-2 py-2.5 hover:bg-bg-elevated transition-colors group"
+        style={{ paddingLeft: `${16 + depth * 20}px`, paddingRight: '16px' }}
       >
-        {cat.children.length > 0 ? (
-          <ChevronRight size={14} className="text-text-muted flex-shrink-0" />
+        {/* Toggle button */}
+        {hasChildren ? (
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="text-text-muted hover:text-text-primary transition-colors flex-shrink-0"
+            title={open ? 'Скрыть' : 'Показать'}
+          >
+            {open
+              ? <ChevronDown size={14} />
+              : <ChevronRight size={14} />
+            }
+          </button>
         ) : (
           <span className="w-3.5 flex-shrink-0" />
         )}
+
         <span className="flex-1 text-sm text-text-primary">{cat.name}</span>
+
+        {hasChildren && (
+          <span className="text-xs text-text-muted mr-1">
+            {cat.children.length}
+          </span>
+        )}
+
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onAdd(cat)}
@@ -170,27 +191,34 @@ function CategoryRow({
           <button
             onClick={() => onEdit(cat)}
             className="p-1.5 text-text-muted hover:text-text-primary rounded transition-colors"
+            title="Редактировать"
           >
             <Edit size={14} />
           </button>
           <button
             onClick={() => onDelete(cat.id)}
             className="p-1.5 text-text-muted hover:text-danger rounded transition-colors"
+            title="Удалить"
           >
             <Trash2 size={14} />
           </button>
         </div>
       </div>
-      {cat.children.map((child) => (
-        <CategoryRow
-          key={child.id}
-          cat={child}
-          depth={depth + 1}
-          onAdd={onAdd}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ))}
+
+      {hasChildren && open && (
+        <div>
+          {cat.children.map((child) => (
+            <CategoryRow
+              key={child.id}
+              cat={child}
+              depth={depth + 1}
+              onAdd={onAdd}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </div>
+      )}
     </>
   )
 }
