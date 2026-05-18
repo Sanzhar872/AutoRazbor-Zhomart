@@ -22,10 +22,17 @@ const STATUS_OPTIONS = [
 ]
 
 const STATUS_BADGE: Record<string, { label: string; variant: 'success' | 'danger' | 'neutral' | 'warning' }> = {
-  active:   { label: 'Активна',         variant: 'success' },
-  sold_out: { label: 'Нет в наличии',   variant: 'danger' },
-  draft:    { label: 'Черновик',        variant: 'neutral' },
-  archived: { label: 'Архив',           variant: 'warning' },
+  active:   { label: 'Активна',       variant: 'success' },
+  sold_out: { label: 'Нет в наличии', variant: 'danger'  },
+  draft:    { label: 'Черновик',      variant: 'neutral' },
+  archived: { label: 'Архив',         variant: 'warning' },
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString('ru-RU', {
+    day: '2-digit', month: '2-digit', year: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
 }
 
 export function PartsListPage() {
@@ -33,7 +40,6 @@ export function PartsListPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const qc = useQueryClient()
 
-  // status='' → backend gets empty string → or None → no filter → all parts
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.parts({ page, per_page: 20, status: statusFilter }),
     queryFn: () => partsApi.list({ page, per_page: 20, status: statusFilter }),
@@ -60,7 +66,6 @@ export function PartsListPage() {
             )}
           </div>
           <div className="flex items-center gap-2 ml-auto">
-            {/* Status filter tabs */}
             <div className="flex gap-1 bg-bg-elevated border border-border rounded-lg p-1">
               {STATUS_OPTIONS.map((opt) => (
                 <button
@@ -95,7 +100,8 @@ export function PartsListPage() {
                   <th className="text-left px-4 py-3 text-text-muted font-medium">Название</th>
                   <th className="text-left px-4 py-3 text-text-muted font-medium hidden md:table-cell">Категория</th>
                   <th className="text-right px-4 py-3 text-text-muted font-medium">Цена</th>
-                  <th className="text-right px-4 py-3 text-text-muted font-medium">Остаток</th>
+                  <th className="text-right px-4 py-3 text-text-muted font-medium hidden lg:table-cell">Остаток</th>
+                  <th className="text-left px-4 py-3 text-text-muted font-medium hidden lg:table-cell">Добавлен</th>
                   <th className="text-left px-4 py-3 text-text-muted font-medium">Статус</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -104,7 +110,7 @@ export function PartsListPage() {
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => (
                       <tr key={i}>
-                        <td colSpan={6} className="px-4 py-3">
+                        <td colSpan={7} className="px-4 py-3">
                           <Skeleton className="h-5 w-full" />
                         </td>
                       </tr>
@@ -112,7 +118,7 @@ export function PartsListPage() {
                   : data?.items.length === 0
                   ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-text-muted text-sm">
+                      <td colSpan={7} className="py-12 text-center text-text-muted text-sm">
                         Запчастей нет
                       </td>
                     </tr>
@@ -121,7 +127,7 @@ export function PartsListPage() {
                       const badge = STATUS_BADGE[part.status] ?? { label: part.status, variant: 'neutral' as const }
                       return (
                         <tr key={part.id} className="hover:bg-bg-elevated/50 transition-colors">
-                          <td className="px-4 py-3 max-w-[240px]">
+                          <td className="px-4 py-3 max-w-[220px]">
                             <Link
                               to={ROUTES.PART(part.slug)}
                               target="_blank"
@@ -133,13 +139,24 @@ export function PartsListPage() {
                           <td className="px-4 py-3 text-text-secondary hidden md:table-cell">
                             {part.category.name}
                           </td>
-                          <td className="px-4 py-3 text-right text-text-secondary whitespace-nowrap">
-                            {formatPrice(part.price_kzt)}
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <span className="font-semibold text-accent">
+                              {formatPrice(part.price_kzt)}
+                            </span>
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <span className={part.stock === 0 ? 'text-danger font-medium' : part.stock < 5 ? 'text-warning font-medium' : 'text-text-primary'}>
+                          <td className="px-4 py-3 text-right hidden lg:table-cell">
+                            <span className={
+                              part.stock === 0
+                                ? 'text-danger font-medium'
+                                : part.stock < 5
+                                ? 'text-warning font-medium'
+                                : 'text-text-primary'
+                            }>
                               {part.stock} шт
                             </span>
+                          </td>
+                          <td className="px-4 py-3 text-text-muted whitespace-nowrap hidden lg:table-cell">
+                            {formatDate(part.created_at)}
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -172,6 +189,31 @@ export function PartsListPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {data && data.pages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-xs text-text-muted">
+                Стр. {page} из {data.pages}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-xs border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors"
+                >
+                  ← Назад
+                </button>
+                <button
+                  onClick={() => setPage(p => Math.min(data.pages, p + 1))}
+                  disabled={page === data.pages}
+                  className="px-3 py-1.5 text-xs border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors"
+                >
+                  Вперёд →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

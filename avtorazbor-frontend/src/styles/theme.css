@@ -1,22 +1,22 @@
-/* ── DARK THEME (default) — серо-тёмные оттенки, не чистый чёрный ── */
+/* ── DARK THEME (default) ── */
 [data-theme="dark"] {
-  --bg-base:      #1C1C1F;   /* главный фон — тёмно-серый */
-  --bg-surface:   #25252A;   /* карточки, сайдбар */
-  --bg-elevated:  #2E2E34;   /* модалки, дропдауны */
-  --bg-input:     #35353C;   /* поля ввода */
+  --bg-base:      #1C1C1F;
+  --bg-surface:   #25252A;
+  --bg-elevated:  #2E2E34;
+  --bg-input:     #35353C;
 
-  --accent:       #E53E3E;
-  --accent-hover: #C53030;
-  --accent-muted: rgba(229, 62, 62, 0.15);
+  --accent:       #22C55E;
+  --accent-hover: #16A34A;
+  --accent-muted: rgba(34, 197, 94, 0.15);
 
   --text-primary:   #F0F0F2;
   --text-secondary: #9A9AA8;
   --text-muted:     #5E5E6E;
 
   --border:       #33333C;
-  --border-focus: #E53E3E;
+  --border-focus: #22C55E;
 
-  --success: #38A169;
+  --success: #22C55E;
   --warning: #D69E2E;
   --danger:  #E53E3E;
 
@@ -35,16 +35,16 @@
   --bg-elevated:  #FAFAFA;
   --bg-input:     #EBEBEF;
 
-  --accent:       #D63232;
-  --accent-hover: #B52A2A;
-  --accent-muted: rgba(214, 50, 50, 0.12);
+  --accent:       #16A34A;
+  --accent-hover: #15803D;
+  --accent-muted: rgba(22, 163, 74, 0.12);
 
   --text-primary:   #18181B;
   --text-secondary: #52525B;
   --text-muted:     #A1A1AA;
 
   --border:       #E4E4E7;
-  --border-focus: #D63232;
+  --border-focus: #16A34A;
 
   --success: #16A34A;
   --warning: #CA8A04;
