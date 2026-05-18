@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ChevronRight, Phone, MessageCircle } from 'lucide-react'
@@ -38,7 +39,15 @@ export function PartPage() {
     )
   }
 
-  const primaryImage = part.images.find((i) => i.is_primary) ?? part.images[0]
+  const sortedImages = [...part.images].sort((a, b) => {
+    if (a.is_primary) return -1
+    if (b.is_primary) return 1
+    return a.position - b.position
+  })
+
+  const [activeIdx, setActiveIdx] = useState(0)
+  const activeImage = sortedImages[activeIdx] ?? null
+  const primaryImage = sortedImages[0] ?? null
 
   return (
     <>
@@ -66,12 +75,14 @@ export function PartPage() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Gallery */}
           <div className="space-y-3">
+            {/* Main image */}
             <div className="aspect-square bg-bg-surface border border-border rounded-lg overflow-hidden">
-              {primaryImage ? (
+              {activeImage ? (
                 <img
-                  src={resolveUrl(primaryImage.public_url)}
+                  key={activeImage.id}
+                  src={resolveUrl(activeImage.public_url)}
                   alt={part.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain transition-opacity duration-150"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">
@@ -79,15 +90,26 @@ export function PartPage() {
                 </div>
               )}
             </div>
-            {part.images.length > 1 && (
+
+            {/* Thumbnails */}
+            {sortedImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {part.images.map((img) => (
-                  <div
+                {sortedImages.map((img, idx) => (
+                  <button
                     key={img.id}
-                    className="flex-shrink-0 w-16 h-16 bg-bg-surface border border-border rounded-md overflow-hidden cursor-pointer hover:border-accent transition-colors"
+                    onClick={() => setActiveIdx(idx)}
+                    className={`flex-shrink-0 w-16 h-16 bg-bg-surface rounded-md overflow-hidden transition-all ${
+                      idx === activeIdx
+                        ? 'ring-2 ring-accent border-2 border-accent'
+                        : 'border border-border hover:border-accent/60'
+                    }`}
                   >
-                    <img src={resolveUrl(img.public_url)} alt="" className="w-full h-full object-cover" />
-                  </div>
+                    <img
+                      src={resolveUrl(img.public_url)}
+                      alt={`Фото ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
                 ))}
               </div>
             )}
