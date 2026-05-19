@@ -20,6 +20,20 @@ export function PartPage() {
   const { data: part, isLoading, error } = usePart(slug)
   const { data: config } = useConfig()
 
+  // Hooks must be called before any conditional return
+  const [activeIdx, setActiveIdx] = useState(0)
+
+  const sortedImages = part
+    ? [...part.images].sort((a, b) => {
+        if (a.is_primary) return -1
+        if (b.is_primary) return 1
+        return a.position - b.position
+      })
+    : []
+
+  const activeImage = sortedImages[activeIdx] ?? null
+  const primaryImage = sortedImages[0] ?? null
+
   if (isLoading) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[40vh]">
@@ -38,16 +52,6 @@ export function PartPage() {
       </PageContainer>
     )
   }
-
-  const sortedImages = [...part.images].sort((a, b) => {
-    if (a.is_primary) return -1
-    if (b.is_primary) return 1
-    return a.position - b.position
-  })
-
-  const [activeIdx, setActiveIdx] = useState(0)
-  const activeImage = sortedImages[activeIdx] ?? null
-  const primaryImage = sortedImages[0] ?? null
 
   return (
     <>

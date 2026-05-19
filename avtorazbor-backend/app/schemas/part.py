@@ -14,10 +14,13 @@ class FavoriteMetaSchema(Schema):
 
 
 class PartImageSchema(Schema):
-    id = fields.UUID()
+    id = fields.Method("get_id")
     public_url = fields.String(attribute="asset.public_url")
     position = fields.Integer()
     is_primary = fields.Boolean()
+
+    def get_id(self, obj) -> str:
+        return str(obj.id)
 
 
 class CarGenerationBriefSchema(Schema):
