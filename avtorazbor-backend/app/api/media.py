@@ -1,8 +1,8 @@
-import io
+import base64
 import os
 import uuid
 from datetime import datetime, timezone
-from flask import Blueprint, jsonify, request, Response, send_from_directory
+from flask import Blueprint, jsonify, request, Response, send_from_directory, current_app
 from werkzeug.utils import secure_filename
 
 import cloudinary
@@ -60,13 +60,18 @@ def upload() -> tuple[Response, int]:
     if _cloudinary_enabled():
         # Upload to Cloudinary — permanent, CDN-served
         _configure_cloudinary()
-        result = cloudinary.uploader.upload(
-            io.BytesIO(content),
-            folder="avtorazbor",
-            resource_type="image",
-        )
-        public_url = result["secure_url"]
-        gcs_path = result["public_id"]
+        try:
+            data_uri = f"data:{mime};base64,{base64.b64encode(content).decode()}"
+            result = cloudinary.uploader.upload(
+                data_uri,
+                folder="avtorazbor",
+                resource_type="image",
+            )
+            public_url = result["secure_url"]
+            gcs_path = result["public_id"]
+        except Exception as e:
+            current_app.logger.error(f"Cloudinary upload error: {e}")
+            raise ValidationError(f"Ошибка загрузки в облако: {e}")
     else:
         # Fallback: local filesystem (dev only — ephemeral on Render)
         ext = os.path.splitext(secure_filename(file.filename))[1].lower() or ".jpg"
