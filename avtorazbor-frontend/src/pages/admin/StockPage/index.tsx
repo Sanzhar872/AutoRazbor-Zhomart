@@ -142,7 +142,7 @@ export function StockPage() {
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <ShoppingCart size={13} />
-                              Продано
+                              Продать
                             </button>
                             <button
                               onClick={() => open(item, 'return')}
