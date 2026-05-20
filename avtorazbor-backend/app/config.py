@@ -40,9 +40,9 @@ class Settings(BaseSettings):
 
     # Contact info (returned by /api/v1/config)
     CONTACT_PHONE: str = "+77759353595"
-    CONTACT_PHONE_DISPLAY: str = "7 775 935 3595"
+    CONTACT_PHONE_DISPLAY: str = "8 775 935 3595"
     CONTACT_PHONE_2: str = "+77777241010"
-    CONTACT_PHONE_DISPLAY_2: str = "7 777 724 1010"
+    CONTACT_PHONE_DISPLAY_2: str = "8 777 724 1010"
     WORKING_HOURS: str = "Пн–Сб 9:00–18:00"
     SHOP_ADDRESS: str = "г. Алматы проспект Райымбека 550"
     WHATSAPP_NUMBER: str = "77759353595"
