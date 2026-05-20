@@ -10,6 +10,8 @@ def get_config() -> tuple[Response, int]:
     return jsonify({
         "contact_phone": s.CONTACT_PHONE,
         "contact_phone_display": s.CONTACT_PHONE_DISPLAY,
+        "contact_phone_2": s.CONTACT_PHONE_2,
+        "contact_phone_display_2": s.CONTACT_PHONE_DISPLAY_2,
         "working_hours": s.WORKING_HOURS,
         "address": s.SHOP_ADDRESS,
         "whatsapp_link": f"https://wa.me/{s.WHATSAPP_NUMBER}",

@@ -24,6 +24,8 @@ export interface FavoriteMeta {
 export interface SiteConfig {
   contact_phone: string
   contact_phone_display: string
+  contact_phone_2: string
+  contact_phone_display_2: string
   working_hours: string
   address: string
   whatsapp_link: string

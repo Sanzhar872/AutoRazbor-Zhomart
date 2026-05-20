@@ -39,11 +39,13 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str = ""
 
     # Contact info (returned by /api/v1/config)
-    CONTACT_PHONE: str = "+70000000000"
-    CONTACT_PHONE_DISPLAY: str = "8 (000) 000-00-00"
+    CONTACT_PHONE: str = "+77759353595"
+    CONTACT_PHONE_DISPLAY: str = "7 775 935 3595"
+    CONTACT_PHONE_2: str = "+77777241010"
+    CONTACT_PHONE_DISPLAY_2: str = "7 777 724 1010"
     WORKING_HOURS: str = "Пн–Сб 9:00–18:00"
     SHOP_ADDRESS: str = "г. Алматы"
-    WHATSAPP_NUMBER: str = "70000000000"
+    WHATSAPP_NUMBER: str = "77759353595"
 
     # Media
     MAX_UPLOAD_BYTES: int = 10 * 1024 * 1024  # 10 MB
