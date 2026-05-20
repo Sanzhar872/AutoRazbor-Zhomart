@@ -3,6 +3,9 @@ import { Phone, ArrowRight } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
 
+const MAP_SRC =
+  'https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22poi%22%3A%7B%22id%22%3A%2270000001047219954%22%7D%2C%22zoom%22%3A17%7D'
+
 export function HeroBanner() {
   const { data: config } = useConfig()
 
@@ -46,16 +49,17 @@ export function HeroBanner() {
           </div>
         </div>
 
-        {/* Right — 2GIS map */}
-        <div className="relative min-h-[260px] md:min-h-0">
+        {/* Right — 2GIS widget */}
+        <div className="relative min-h-[280px] md:min-h-0">
           <iframe
-            src="https://2gis.kz/almaty/geo/70000001047219954"
+            src={MAP_SRC}
             width="100%"
             height="100%"
             frameBorder="0"
             allowFullScreen
             title="Наш адрес на карте"
             className="absolute inset-0 w-full h-full"
+            style={{ border: 'none' }}
           />
         </div>
       </div>
