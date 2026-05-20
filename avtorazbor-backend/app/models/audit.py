@@ -21,8 +21,10 @@ class AuditLog(Base, UUIDPrimaryKeyMixin):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, server_default=func.now(), nullable=False
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
         Index("audit_actor_idx", "actor_id"),
         Index("audit_entity_idx", "entity_type", "entity_id"),
+        Index("audit_deleted_idx", "deleted_at"),
     )

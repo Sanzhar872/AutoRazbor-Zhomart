@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
-import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar } from 'lucide-react'
+import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { useAdminDashboard } from '@/hooks/useAdmin'
+import { useAdminDashboard, useDeleteSale, useRestoreSale } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/lib/formatPrice'
@@ -12,6 +13,9 @@ import type { ElementType } from 'react'
 
 export function DashboardPage() {
   const { data, isLoading } = useAdminDashboard()
+  const [trashOpen, setTrashOpen] = useState(false)
+
+  const hasDeleted = (data?.deleted_sales?.length ?? 0) > 0
 
   return (
     <>
@@ -46,27 +50,55 @@ export function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Recent sales */}
-          <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <p className="font-medium text-text-primary text-sm flex items-center gap-2">
-                <ShoppingCart size={15} className="text-success" />
-                Последние продажи
-              </p>
-              <Link to={ROUTES.ADMIN_STOCK} className="text-xs text-accent hover:underline">
-                Склад →
-              </Link>
-            </div>
-            {isLoading ? (
-              <div className="p-4 flex flex-col gap-2">
-                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
+          <div className="flex flex-col gap-3">
+            <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+                <p className="font-medium text-text-primary text-sm flex items-center gap-2">
+                  <ShoppingCart size={15} className="text-success" />
+                  Последние продажи
+                </p>
+                <Link to={ROUTES.ADMIN_STOCK} className="text-xs text-accent hover:underline">
+                  Склад →
+                </Link>
               </div>
-            ) : !data?.recent_sales?.length ? (
-              <p className="text-center text-text-muted text-sm py-8">Продаж ещё не было</p>
-            ) : (
-              <div className="divide-y divide-border">
-                {data.recent_sales.map((sale, i) => (
-                  <SaleRow key={i} sale={sale} />
-                ))}
+              {isLoading ? (
+                <div className="p-4 flex flex-col gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
+                </div>
+              ) : !data?.recent_sales?.length ? (
+                <p className="text-center text-text-muted text-sm py-8">Продаж ещё не было</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {data?.recent_sales.map((sale) => (
+                    <SaleRow key={sale.id} sale={sale} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Trash */}
+            {!isLoading && hasDeleted && (
+              <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setTrashOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-5 py-3 border-b border-border hover:bg-bg-elevated/40 transition-colors"
+                >
+                  <p className="font-medium text-text-muted text-sm flex items-center gap-2">
+                    <Trash2 size={14} className="text-danger" />
+                    Корзина
+                    <span className="bg-danger/15 text-danger text-xs px-1.5 py-0.5 rounded-full font-semibold">
+                      {data?.deleted_sales.length}
+                    </span>
+                  </p>
+                  {trashOpen ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
+                </button>
+                {trashOpen && (
+                  <div className="divide-y divide-border">
+                    {data?.deleted_sales.map((sale) => (
+                      <DeletedSaleRow key={sale.id} sale={sale} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -110,21 +142,9 @@ export function DashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
-              <RevenueCard
-                icon={CalendarDays}
-                label="Сегодня"
-                value={data?.revenue.today ?? 0}
-              />
-              <RevenueCard
-                icon={CalendarRange}
-                label="Эта неделя"
-                value={data?.revenue.week ?? 0}
-              />
-              <RevenueCard
-                icon={Calendar}
-                label="Этот месяц"
-                value={data?.revenue.month ?? 0}
-              />
+              <RevenueCard icon={CalendarDays}  label="Сегодня"      value={data?.revenue.today ?? 0} />
+              <RevenueCard icon={CalendarRange} label="Эта неделя"   value={data?.revenue.week ?? 0} />
+              <RevenueCard icon={Calendar}      label="Этот месяц"   value={data?.revenue.month ?? 0} />
             </div>
           )}
         </div>
@@ -133,22 +153,14 @@ export function DashboardPage() {
   )
 }
 
-function StatCard({
-  icon: Icon, label, value, color, suffix,
-}: {
-  icon: ElementType
-  label: string
-  value: number
-  color: string
-  suffix?: string
+function StatCard({ icon: Icon, label, value, color, suffix }: {
+  icon: ElementType; label: string; value: number; color: string; suffix?: string
 }) {
   return (
     <div className="bg-bg-surface border border-border rounded-lg p-4 flex flex-col gap-2">
       <Icon size={18} className={color} />
       <p className="text-2xl font-bold text-text-primary">{value}</p>
-      <p className="text-xs text-text-muted leading-tight">
-        {label}{suffix ? ` · ${suffix}` : ''}
-      </p>
+      <p className="text-xs text-text-muted leading-tight">{label}{suffix ? ` · ${suffix}` : ''}</p>
     </div>
   )
 }
@@ -156,10 +168,7 @@ function StatCard({
 function RevenueCard({ icon: Icon, label, value }: { icon: ElementType; label: string; value: number }) {
   return (
     <div className="px-6 py-5 flex flex-col gap-1.5">
-      <div className="flex items-center gap-2 text-text-muted text-xs">
-        <Icon size={13} />
-        {label}
-      </div>
+      <div className="flex items-center gap-2 text-text-muted text-xs"><Icon size={13} />{label}</div>
       <p className="text-2xl font-bold text-success">
         {value > 0 ? `+${formatPrice(value)}` : formatPrice(value)}
       </p>
@@ -168,29 +177,63 @@ function RevenueCard({ icon: Icon, label, value }: { icon: ElementType; label: s
 }
 
 function SaleRow({ sale }: { sale: SaleRecord }) {
+  const { mutate: deleteSale, isPending } = useDeleteSale()
   const timeAgo = sale.sold_at
     ? formatDistanceToNow(new Date(sale.sold_at), { addSuffix: true, locale: ru })
     : ''
 
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 hover:bg-bg-elevated/40 transition-colors">
+    <div className="flex items-center gap-3 px-5 py-2.5 hover:bg-bg-elevated/40 transition-colors group">
       <div className="flex-shrink-0 w-7 h-7 rounded-full bg-success/10 flex items-center justify-center">
         <ShoppingCart size={13} className="text-success" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-text-primary truncate">{sale.title}</p>
-        {sale.comment && (
-          <p className="text-xs text-text-muted truncate">{sale.comment}</p>
-        )}
+        {sale.comment && <p className="text-xs text-text-muted truncate">{sale.comment}</p>}
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-sm font-bold text-success">
-          +{formatPrice(sale.profit)}
-        </p>
-        <p className="text-xs text-text-muted">
-          {sale.delta} шт · {timeAgo}
-        </p>
+        <p className="text-sm font-bold text-success">+{formatPrice(sale.profit)}</p>
+        <p className="text-xs text-text-muted">{sale.delta} шт · {timeAgo}</p>
       </div>
+      <button
+        onClick={() => deleteSale(sale.id)}
+        disabled={isPending}
+        title="Удалить в корзину"
+        className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  )
+}
+
+function DeletedSaleRow({ sale }: { sale: SaleRecord }) {
+  const { mutate: restoreSale, isPending } = useRestoreSale()
+  const deletedAgo = sale.deleted_at
+    ? formatDistanceToNow(new Date(sale.deleted_at), { addSuffix: true, locale: ru })
+    : ''
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-2.5 opacity-60 hover:opacity-100 transition-opacity">
+      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-danger/10 flex items-center justify-center">
+        <Trash2 size={13} className="text-danger" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-text-primary truncate line-through">{sale.title}</p>
+        <p className="text-xs text-text-muted">удалено {deletedAgo}</p>
+      </div>
+      <div className="flex-shrink-0 text-right mr-1">
+        <p className="text-sm font-bold text-text-muted line-through">{formatPrice(sale.profit)}</p>
+        <p className="text-xs text-text-muted">{sale.delta} шт</p>
+      </div>
+      <button
+        onClick={() => restoreSale(sale.id)}
+        disabled={isPending}
+        title="Восстановить"
+        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-all disabled:opacity-40"
+      >
+        <RotateCcw size={14} />
+      </button>
     </div>
   )
 }

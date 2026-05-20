@@ -4,6 +4,28 @@ import { adminApi } from '@/api/admin.api'
 import { queryKeys } from '@/constants/queryKeys'
 import { getApiError } from '@/api/client'
 
+export function useDeleteSale() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (auditId: string) => adminApi.deleteSale(auditId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
+export function useRestoreSale() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (auditId: string) => adminApi.restoreSale(auditId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
 export function useAdminDashboard() {
   return useQuery({ queryKey: queryKeys.adminDashboard, queryFn: adminApi.getDashboard })
 }

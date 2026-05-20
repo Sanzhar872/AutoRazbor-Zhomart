@@ -11,6 +11,7 @@ export interface StockChangeResponse {
 }
 
 export interface SaleRecord {
+  id: string
   part_id: string
   title: string
   slug: string
@@ -21,6 +22,7 @@ export interface SaleRecord {
   stock_after: number | null
   comment: string
   sold_at: string | null
+  deleted_at: string | null
 }
 
 export interface DashboardData {
@@ -31,6 +33,7 @@ export interface DashboardData {
   sold_today: number
   sold_total: number
   recent_sales: SaleRecord[]
+  deleted_sales: SaleRecord[]
   top_favorites: Array<{ id: string; title: string; favorites: number }>
   revenue: { today: number; week: number; month: number }
 }
@@ -61,4 +64,10 @@ export const adminApi = {
     client
       .post<StockChangeResponse>(`/admin/stock/${partId}/return`, { delta, comment })
       .then((r) => r.data),
+
+  deleteSale: (auditId: string) =>
+    client.delete(`/admin/sales/${auditId}`).then((r) => r.data),
+
+  restoreSale: (auditId: string) =>
+    client.post(`/admin/sales/${auditId}/restore`).then((r) => r.data),
 }

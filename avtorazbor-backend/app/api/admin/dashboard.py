@@ -12,11 +12,15 @@ bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/v1/admin")
 
 
 def _period_revenue(start: datetime) -> int:
-    """Net revenue = sales - returns since `start`."""
+    """Net revenue = sales - returns since `start`, excluding soft-deleted sales."""
     sale_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
-        .where(AuditLog.action == "part.stock.decrease", AuditLog.created_at >= start)
+        .where(
+            AuditLog.action == "part.stock.decrease",
+            AuditLog.deleted_at.is_(None),
+            AuditLog.created_at >= start,
+        )
     ).all()
     total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
 
@@ -28,6 +32,25 @@ def _period_revenue(start: datetime) -> int:
     total -= sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
 
     return max(0, int(total))
+
+
+def _sale_record(log: AuditLog, part: Part) -> dict:
+    diff = log.diff or {}
+    delta = int(diff.get("delta", 1))
+    return {
+        "id":          str(log.id),
+        "part_id":     str(part.id),
+        "title":       part.title,
+        "slug":        part.slug,
+        "price_kzt":   part.price_kzt,
+        "profit":      part.price_kzt * delta,
+        "delta":       delta,
+        "stock_before": diff.get("before"),
+        "stock_after":  diff.get("after"),
+        "comment":     diff.get("comment", ""),
+        "sold_at":     log.created_at.isoformat() if log.created_at else None,
+        "deleted_at":  log.deleted_at.isoformat() if log.deleted_at else None,
+    }
 
 
 @bp.get("/dashboard")
@@ -61,41 +84,37 @@ def dashboard() -> tuple[Response, int]:
     sold_today = db.session.execute(
         select(func.count()).select_from(AuditLog).where(
             AuditLog.action == "part.stock.decrease",
+            AuditLog.deleted_at.is_(None),
             AuditLog.created_at >= today_start,
         )
     ).scalar_one()
 
     sold_total = db.session.execute(
         select(func.count()).select_from(AuditLog).where(
-            AuditLog.action == "part.stock.decrease"
+            AuditLog.action == "part.stock.decrease",
+            AuditLog.deleted_at.is_(None),
         )
     ).scalar_one()
 
-    # Recent sales — last 20, with price
-    recent_sales_rows = db.session.execute(
+    # Recent sales (not deleted)
+    recent_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
-        .where(AuditLog.action == "part.stock.decrease")
+        .where(AuditLog.action == "part.stock.decrease", AuditLog.deleted_at.is_(None))
         .order_by(AuditLog.created_at.desc())
         .limit(20)
     ).all()
+    recent_sales = [_sale_record(log, part) for log, part in recent_rows]
 
-    recent_sales = []
-    for log, part in recent_sales_rows:
-        diff = log.diff or {}
-        delta = int(diff.get("delta", 1))
-        recent_sales.append({
-            "part_id":     str(part.id),
-            "title":       part.title,
-            "slug":        part.slug,
-            "price_kzt":   part.price_kzt,
-            "profit":      part.price_kzt * delta,
-            "delta":       delta,
-            "stock_before": diff.get("before"),
-            "stock_after":  diff.get("after"),
-            "comment":     diff.get("comment", ""),
-            "sold_at":     log.created_at.isoformat() if log.created_at else None,
-        })
+    # Deleted sales (trash)
+    deleted_rows = db.session.execute(
+        select(AuditLog, Part)
+        .join(Part, Part.id == AuditLog.entity_id)
+        .where(AuditLog.action == "part.stock.decrease", AuditLog.deleted_at.isnot(None))
+        .order_by(AuditLog.deleted_at.desc())
+        .limit(50)
+    ).all()
+    deleted_sales = [_sale_record(log, part) for log, part in deleted_rows]
 
     top_favorites = db.session.execute(
         select(Part, func.count(Favorite.id).label("fav_count"))
@@ -106,11 +125,6 @@ def dashboard() -> tuple[Response, int]:
         .limit(5)
     ).all()
 
-    # Revenue by period
-    revenue_today = _period_revenue(today_start)
-    revenue_week  = _period_revenue(week_start)
-    revenue_month = _period_revenue(month_start)
-
     return jsonify({
         "total_parts":    total,
         "active_parts":   active,
@@ -119,13 +133,14 @@ def dashboard() -> tuple[Response, int]:
         "sold_today":     sold_today,
         "sold_total":     sold_total,
         "recent_sales":   recent_sales,
+        "deleted_sales":  deleted_sales,
         "top_favorites":  [
             {"id": str(p.id), "title": p.title, "favorites": cnt}
             for p, cnt in top_favorites
         ],
         "revenue": {
-            "today": revenue_today,
-            "week":  revenue_week,
-            "month": revenue_month,
+            "today": _period_revenue(today_start),
+            "week":  _period_revenue(week_start),
+            "month": _period_revenue(month_start),
         },
     }), 200
