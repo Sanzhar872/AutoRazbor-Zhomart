@@ -1,10 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Phone, ArrowRight } from 'lucide-react'
+import { Phone, ArrowRight, MapPin, ExternalLink, Clock } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
 
-const MAP_SRC =
-  'https://widgets.2gis.com/widget?type=firmsonmap&options=%7B%22poi%22%3A%7B%22id%22%3A%2270000001047219954%22%7D%2C%22zoom%22%3A17%7D'
+const TWOGIS_URL = 'https://2gis.kz/almaty/geo/70000001047219954'
 
 export function HeroBanner() {
   const { data: config } = useConfig()
@@ -12,6 +11,7 @@ export function HeroBanner() {
   return (
     <section className="rounded-xl bg-bg-surface border border-border overflow-hidden">
       <div className="grid md:grid-cols-2 min-h-[420px] md:min-h-[480px]">
+
         {/* Left — text */}
         <div className="flex flex-col justify-center px-6 md:px-12 py-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-muted border border-accent/30 rounded-full text-accent text-xs font-medium mb-4 w-fit">
@@ -49,19 +49,45 @@ export function HeroBanner() {
           </div>
         </div>
 
-        {/* Right — 2GIS widget */}
-        <div className="relative min-h-[280px] md:min-h-0">
-          <iframe
-            src={MAP_SRC}
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            allowFullScreen
-            title="Наш адрес на карте"
-            className="absolute inset-0 w-full h-full"
-            style={{ border: 'none' }}
-          />
+        {/* Right — address card */}
+        <div className="flex items-center justify-center bg-bg-elevated border-l border-border px-6 py-10">
+          <div className="w-full max-w-sm flex flex-col gap-5">
+
+            {/* Map pin icon block */}
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                <MapPin size={28} className="text-accent" />
+              </div>
+            </div>
+
+            <div className="text-center flex flex-col gap-1">
+              <p className="text-xs text-text-muted uppercase tracking-widest">Наш адрес</p>
+              <p className="text-lg font-semibold text-text-primary leading-snug">
+                г. Алматы,<br />проспект Райымбека 550
+              </p>
+            </div>
+
+            {config && (
+              <div className="flex items-center justify-center gap-2 text-sm text-text-secondary">
+                <Clock size={14} className="text-text-muted flex-shrink-0" />
+                {config.working_hours}
+              </div>
+            )}
+
+            <a
+              href={TWOGIS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg border border-accent/40 text-accent text-sm font-medium hover:bg-accent hover:text-white transition-all"
+            >
+              <MapPin size={15} />
+              Открыть на карте 2GIS
+              <ExternalLink size={13} />
+            </a>
+
+          </div>
         </div>
+
       </div>
     </section>
   )
