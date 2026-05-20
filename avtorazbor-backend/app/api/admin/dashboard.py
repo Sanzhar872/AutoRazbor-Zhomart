@@ -12,17 +12,22 @@ bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/v1/admin")
 
 
 def _period_revenue(start: datetime) -> int:
-    """Sum of price_kzt * delta for all sales since `start`."""
-    rows = db.session.execute(
+    """Net revenue = sales - returns since `start`."""
+    sale_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
         .where(AuditLog.action == "part.stock.decrease", AuditLog.created_at >= start)
     ).all()
-    total = 0
-    for log, part in rows:
-        diff = log.diff or {}
-        total += part.price_kzt * int(diff.get("delta", 1))
-    return total
+    total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
+
+    return_rows = db.session.execute(
+        select(AuditLog, Part)
+        .join(Part, Part.id == AuditLog.entity_id)
+        .where(AuditLog.action == "part.stock.return", AuditLog.created_at >= start)
+    ).all()
+    total -= sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
+
+    return max(0, int(total))
 
 
 @bp.get("/dashboard")

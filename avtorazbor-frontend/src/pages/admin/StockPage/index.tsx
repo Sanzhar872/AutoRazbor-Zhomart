@@ -18,6 +18,7 @@ interface StockItem {
   slug: string
   favorites_count: number
   max_favorite_slots: number
+  net_sold: number
 }
 
 type ModalMode = 'sold' | 'return' | null
@@ -50,7 +51,7 @@ export function StockPage() {
     changeStock(
       {
         partId: selected.id,
-        action: mode === 'sold' ? 'decrease' : 'increase',
+        action: mode === 'sold' ? 'decrease' : 'return',
         value: Number(qty),
         comment: comment || (mode === 'sold' ? 'Продано' : 'Возврат'),
       },
@@ -146,7 +147,8 @@ export function StockPage() {
                             </button>
                             <button
                               onClick={() => open(item, 'return')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all"
+                              disabled={item.net_sold === 0}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <RotateCcw size={13} />
                               Вернуть
@@ -176,6 +178,9 @@ export function StockPage() {
                 <p className="font-medium text-text-primary text-sm">{selected.title}</p>
                 <p className="text-xs text-text-muted mt-0.5">
                   Текущий остаток: <strong className="text-text-primary">{selected.stock} шт</strong>
+                  {mode === 'return' && (
+                    <span className="ml-2">· Можно вернуть: <strong className="text-text-primary">{selected.net_sold} шт</strong></span>
+                  )}
                 </p>
               </div>
             </div>
@@ -196,14 +201,14 @@ export function StockPage() {
                 <input
                   type="number"
                   min={1}
-                  max={mode === 'sold' ? selected.stock : 999}
+                  max={mode === 'sold' ? selected.stock : selected.net_sold}
                   value={qty}
                   onChange={(e) => setQty(e.target.value)}
                   className="flex-1 text-center bg-bg-input border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-border-focus transition-colors font-semibold text-base"
                 />
                 <button
                   type="button"
-                  onClick={() => setQty(String(Math.min(mode === 'sold' ? selected.stock : 999, Number(qty) + 1)))}
+                  onClick={() => setQty(String(Math.min(mode === 'sold' ? selected.stock : selected.net_sold, Number(qty) + 1)))}
                   className="w-9 h-9 rounded-md border border-border bg-bg-elevated text-text-primary hover:border-border-focus transition-colors text-lg font-bold flex items-center justify-center"
                 >
                   +
@@ -244,7 +249,7 @@ export function StockPage() {
               <Button
                 onClick={handleConfirm}
                 loading={isPending}
-                disabled={!qty || Number(qty) < 1 || (mode === 'sold' && Number(qty) > selected.stock)}
+                disabled={!qty || Number(qty) < 1 || (mode === 'sold' && Number(qty) > selected.stock) || (mode === 'return' && Number(qty) > selected.net_sold)}
                 className="flex-1 bg-success hover:bg-success/80"
               >
                 {mode === 'sold' ? `Продано ${qty} шт` : `Вернуть ${qty} шт`}

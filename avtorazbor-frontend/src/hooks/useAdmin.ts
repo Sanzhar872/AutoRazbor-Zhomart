@@ -22,18 +22,19 @@ export function useStockChange() {
       comment,
     }: {
       partId: string
-      action: 'increase' | 'decrease' | 'set'
+      action: 'increase' | 'decrease' | 'set' | 'return'
       value: number
       comment?: string
     }) => {
-      if (action === 'increase') return adminApi.increaseStock(partId, value, comment)
       if (action === 'decrease') return adminApi.decreaseStock(partId, value, comment)
+      if (action === 'return') return adminApi.returnStock(partId, value, comment)
+      if (action === 'increase') return adminApi.increaseStock(partId, value, comment)
       return adminApi.setStock(partId, value, comment)
     },
     onSuccess: (data, vars) => {
       if (vars.action === 'decrease') {
         toast.success(`Продано — остаток: ${data.stock_before} → ${data.stock_after} шт`)
-      } else if (vars.action === 'increase') {
+      } else if (vars.action === 'return') {
         toast.success(`Возврат — остаток: ${data.stock_before} → ${data.stock_after} шт`)
       } else {
         toast.success(`Остаток установлен: ${data.stock_after} шт`)

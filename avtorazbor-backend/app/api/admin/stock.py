@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 from flask import Blueprint, jsonify, request, Response
 from flask_jwt_extended import get_jwt_identity
 from marshmallow import Schema, fields, validate, ValidationError as MaValidationError
@@ -6,6 +7,7 @@ from sqlalchemy import select, func
 
 from app.extensions import db
 from app.models.part import Part
+from app.models.audit import AuditLog
 from app.models.favorite import Favorite
 from app.schemas.part import PartListItemSchema
 from app.services import stock_service
@@ -32,6 +34,20 @@ def list_stock() -> tuple[Response, int]:
     parts = list(db.session.execute(
         select(Part).where(Part.deleted_at.is_(None)).order_by(Part.title)
     ).scalars())
+
+    # Bulk calculate net_sold per part (sold - returned)
+    audit_rows = db.session.execute(
+        select(AuditLog.entity_id, AuditLog.action, AuditLog.diff)
+        .where(AuditLog.action.in_(["part.stock.decrease", "part.stock.return"]))
+    ).all()
+    net_sold_map: dict[uuid.UUID, int] = defaultdict(int)
+    for entity_id, action, diff in audit_rows:
+        delta = int((diff or {}).get("delta", 1))
+        if action == "part.stock.decrease":
+            net_sold_map[entity_id] += delta
+        else:
+            net_sold_map[entity_id] -= delta
+
     result = []
     for part in parts:
         fav_count = db.session.execute(
@@ -41,6 +57,7 @@ def list_stock() -> tuple[Response, int]:
             **PartListItemSchema().dump(part),
             "favorites_count": fav_count,
             "max_favorite_slots": get_favorite_slots(part.stock),
+            "net_sold": max(0, net_sold_map.get(part.id, 0)),
         })
     return jsonify(result), 200
 
@@ -69,6 +86,19 @@ def decrease(part_id: str) -> tuple[Response, int]:
         raise ValidationError(str(e.messages))
     before_stock = _get_or_404(part_id).stock
     part = stock_service.decrease_stock(uuid.UUID(part_id), data["delta"], actor_id, data["comment"])
+    return jsonify(_stock_response(part, before_stock)), 200
+
+
+@bp.post("/<part_id>/return")
+@require_role("admin")
+def return_part(part_id: str) -> tuple[Response, int]:
+    actor_id = uuid.UUID(get_jwt_identity())
+    try:
+        data = StockChangeSchema().load(request.get_json() or {})
+    except MaValidationError as e:
+        raise ValidationError(str(e.messages))
+    before_stock = _get_or_404(part_id).stock
+    part = stock_service.return_stock(uuid.UUID(part_id), data["delta"], actor_id, data["comment"])
     return jsonify(_stock_response(part, before_stock)), 200
 
 

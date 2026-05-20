@@ -56,4 +56,9 @@ export const adminApi = {
     client
       .post<StockChangeResponse>(`/admin/stock/${partId}/set`, { stock, comment })
       .then((r) => r.data),
+
+  returnStock: (partId: string, delta: number, comment?: string) =>
+    client
+      .post<StockChangeResponse>(`/admin/stock/${partId}/return`, { delta, comment })
+      .then((r) => r.data),
 }
