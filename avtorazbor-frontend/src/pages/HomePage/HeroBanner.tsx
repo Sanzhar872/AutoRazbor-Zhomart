@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Phone, ArrowRight, MapPin, ExternalLink, Clock } from 'lucide-react'
+import { Phone, ArrowRight } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
 
-const TWOGIS_URL = 'https://2gis.kz/almaty/geo/70000001047219954'
+const GMAPS_EMBED =
+  'https://maps.google.com/maps?q=%D0%BF%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82+%D0%A0%D0%B0%D0%B9%D1%8B%D0%BC%D0%B1%D0%B5%D0%BA%D0%B0+550+%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B+%D0%9A%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D1%82%D0%B0%D0%BD&output=embed&z=16&hl=ru'
 
 export function HeroBanner() {
   const { data: config } = useConfig()
@@ -49,43 +50,17 @@ export function HeroBanner() {
           </div>
         </div>
 
-        {/* Right — address card */}
-        <div className="flex items-center justify-center bg-bg-elevated border-l border-border px-6 py-10">
-          <div className="w-full max-w-sm flex flex-col gap-5">
-
-            {/* Map pin icon block */}
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
-                <MapPin size={28} className="text-accent" />
-              </div>
-            </div>
-
-            <div className="text-center flex flex-col gap-1">
-              <p className="text-xs text-text-muted uppercase tracking-widest">Наш адрес</p>
-              <p className="text-lg font-semibold text-text-primary leading-snug">
-                г. Алматы,<br />проспект Райымбека 550
-              </p>
-            </div>
-
-            {config && (
-              <div className="flex items-center justify-center gap-2 text-sm text-text-secondary">
-                <Clock size={14} className="text-text-muted flex-shrink-0" />
-                {config.working_hours}
-              </div>
-            )}
-
-            <a
-              href={TWOGIS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-lg border border-accent/40 text-accent text-sm font-medium hover:bg-accent hover:text-white transition-all"
-            >
-              <MapPin size={15} />
-              Открыть на карте 2GIS
-              <ExternalLink size={13} />
-            </a>
-
-          </div>
+        {/* Right — Google Maps */}
+        <div className="relative min-h-[280px] md:min-h-0">
+          <iframe
+            src={GMAPS_EMBED}
+            title="Наш адрес на карте"
+            className="absolute inset-0 w-full h-full"
+            style={{ border: 'none' }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
         </div>
 
       </div>
