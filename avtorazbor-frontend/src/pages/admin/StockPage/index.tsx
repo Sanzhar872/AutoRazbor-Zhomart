@@ -203,7 +203,11 @@ export function StockPage() {
                   min={1}
                   max={mode === 'sold' ? selected.stock : selected.net_sold}
                   value={qty}
-                  onChange={(e) => setQty(e.target.value)}
+                  onChange={(e) => {
+                    const max = mode === 'sold' ? selected.stock : selected.net_sold
+                    const val = Math.max(1, Math.min(Number(e.target.value) || 1, max))
+                    setQty(String(val))
+                  }}
                   className="flex-1 text-center bg-bg-input border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-border-focus transition-colors font-semibold text-base"
                 />
                 <button
