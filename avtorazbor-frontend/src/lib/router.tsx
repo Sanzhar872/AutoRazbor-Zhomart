@@ -1,5 +1,5 @@
-import { lazy, Suspense, type ReactNode } from 'react'
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
+import { createBrowserRouter, Navigate, useLocation, useRouteError } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { Spinner } from '@/components/ui/Spinner'
 import App from '@/App'
@@ -20,6 +20,27 @@ const PartFormPage = lazy(() => import('@/pages/admin/PartFormPage').then((m) =>
 const StockPage = lazy(() => import('@/pages/admin/StockPage').then((m) => ({ default: m.StockPage })))
 const CarsAdminPage = lazy(() => import('@/pages/admin/CarsAdminPage').then((m) => ({ default: m.CarsAdminPage })))
 const CategoriesAdminPage = lazy(() => import('@/pages/admin/CategoriesAdminPage').then((m) => ({ default: m.CategoriesAdminPage })))
+
+function ChunkErrorBoundary() {
+  const error = useRouteError() as Error | null
+  const msg = error?.message ?? ''
+  const isChunkError =
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Unable to preload CSS')
+
+  useEffect(() => {
+    if (isChunkError) window.location.reload()
+  }, [isChunkError])
+
+  if (isChunkError) return null
+
+  return (
+    <div className="flex items-center justify-center min-h-screen text-text-secondary text-sm">
+      Что-то пошло не так. <a href="/" className="ml-1 underline text-accent">На главную</a>
+    </div>
+  )
+}
 
 const Loader = () => (
   <div className="flex items-center justify-center min-h-[40vh]">
@@ -47,6 +68,7 @@ function S({ children }: { children: ReactNode }) {
 export const router = createBrowserRouter([
   {
     element: <App />,
+    errorElement: <ChunkErrorBoundary />,
     children: [
       { index: true, element: <S><HomePage /></S> },
       { path: 'catalog', element: <S><CatalogPage /></S> },
