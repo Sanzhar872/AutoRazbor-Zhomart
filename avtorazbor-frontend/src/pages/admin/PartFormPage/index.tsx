@@ -12,6 +12,7 @@ import { getApiError } from '@/api/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useCategories } from '@/hooks/useCategories'
+import { useConfig } from '@/hooks/useConfig'
 import { ROUTES } from '@/constants/routes'
 import { ImageUploadZone, type PartImageItem } from './ImageUploadZone'
 
@@ -25,6 +26,7 @@ const schema = z.object({
   description: z.string().optional(),
   oem_number: z.string().optional(),
   sku: z.string().optional(),
+  contact_phone: z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -35,6 +37,7 @@ export function PartFormPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { data: categories } = useCategories()
+  const { data: config } = useConfig()
   const [images, setImages] = useState<PartImageItem[]>([])
   const [partId, setPartId] = useState<string | null>(null)
 
@@ -62,6 +65,7 @@ export function PartFormPage() {
         description: existingPart.description ?? '',
         oem_number: existingPart.oem_number ?? '',
         sku: existingPart.sku ?? '',
+        contact_phone: existingPart.contact_phone ?? '',
       })
       setImages(
         existingPart.images.map((img) => ({
@@ -165,6 +169,29 @@ export function PartFormPage() {
 
           <Input label="OEM номер" placeholder="81150-06430" {...register('oem_number')} />
           <Input label="Артикул (SKU)" placeholder="SKU-001" {...register('sku')} />
+
+          {/* Phone selector */}
+          {config && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-text-secondary">Контактный номер для этой запчасти</label>
+              <div className="flex flex-col gap-2 bg-bg-input border border-border rounded-md px-3 py-2.5">
+                {[
+                  { value: config.contact_phone, label: config.contact_phone_display },
+                  { value: config.contact_phone_2, label: config.contact_phone_display_2 },
+                ].map(({ value, label }) => (
+                  <label key={value} className="flex items-center gap-2 cursor-pointer text-sm text-text-primary">
+                    <input
+                      type="radio"
+                      value={value}
+                      {...register('contact_phone')}
+                      className="accent-[var(--color-accent)]"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-text-secondary">Описание</label>

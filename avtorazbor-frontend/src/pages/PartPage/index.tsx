@@ -21,7 +21,6 @@ export function PartPage() {
 
   // Hooks must be called before any conditional return
   const [activeIdx, setActiveIdx] = useState(0)
-  const [selectedPhone, setSelectedPhone] = useState<string | null>(null)
 
   const sortedImages = part
     ? [...part.images].sort((a, b) => {
@@ -191,52 +190,28 @@ export function PartPage() {
             )}
 
             {/* Call block — desktop */}
-            {config && (() => {
-              const phones = [
-                { phone: config.contact_phone, display: config.contact_phone_display },
-                { phone: config.contact_phone_2, display: config.contact_phone_display_2 },
-              ]
-              const active = selectedPhone ?? config.contact_phone
-              return (
-                <div className="hidden md:flex flex-col gap-3 bg-bg-surface border border-border rounded-lg p-4">
-                  <p className="text-sm text-text-secondary">Для покупки позвоните:</p>
-                  <div className="flex flex-col gap-2">
-                    {phones.map(({ phone, display }) => (
-                      <label key={phone} className="flex items-center gap-3 cursor-pointer group">
-                        <input
-                          type="radio"
-                          name="contact-phone"
-                          value={phone}
-                          checked={active === phone}
-                          onChange={() => setSelectedPhone(phone)}
-                          className="accent-[var(--color-accent)] w-4 h-4 cursor-pointer"
-                        />
-                        <span className={`text-base font-semibold transition-colors ${active === phone ? 'text-accent' : 'text-text-primary group-hover:text-accent/80'}`}>
-                          {display}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <a
-                    href={`tel:${active}`}
-                    className="flex items-center justify-center gap-2 py-2.5 bg-accent text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-                  >
-                    <Phone size={18} />
-                    Позвонить
-                  </a>
-                  <p className="text-xs text-text-muted">{config.working_hours}</p>
-                  <a
-                    href={config.whatsapp_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-success hover:underline"
-                  >
-                    <MessageCircle size={15} />
-                    Написать в WhatsApp
-                  </a>
-                </div>
-              )
-            })()}
+            {config && (
+              <div className="hidden md:flex flex-col gap-2 bg-bg-surface border border-border rounded-lg p-4">
+                <p className="text-sm text-text-secondary">Для покупки позвоните:</p>
+                <a
+                  href={`tel:${part.contact_phone ?? config.contact_phone}`}
+                  className="flex items-center gap-2 text-xl font-bold text-text-primary hover:text-accent transition-colors"
+                >
+                  <Phone size={20} className="text-accent" />
+                  {part.contact_phone ?? config.contact_phone_display}
+                </a>
+                <p className="text-xs text-text-muted">{config.working_hours}</p>
+                <a
+                  href={config.whatsapp_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-success hover:underline"
+                >
+                  <MessageCircle size={15} />
+                  Написать в WhatsApp
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -251,22 +226,15 @@ export function PartPage() {
         )}
       </PageContainer>
 
-      {/* Mobile sticky call bar — two phones */}
+      {/* Mobile sticky call bar */}
       {config && (
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-30 flex md:hidden">
           <a
-            href={`tel:${config.contact_phone}`}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3.5 bg-accent text-white text-sm font-semibold border-r border-white/20 active:opacity-80"
+            href={`tel:${part.contact_phone ?? config.contact_phone}`}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-accent text-white text-sm font-semibold shadow-card"
           >
-            <Phone size={15} />
-            {config.contact_phone_display}
-          </a>
-          <a
-            href={`tel:${config.contact_phone_2}`}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3.5 bg-accent text-white text-sm font-semibold active:opacity-80"
-          >
-            <Phone size={15} />
-            {config.contact_phone_display_2}
+            <Phone size={18} />
+            Позвонить: {part.contact_phone ?? config.contact_phone_display}
           </a>
         </div>
       )}

@@ -24,6 +24,7 @@ export interface Part {
   condition: PartCondition
   status: PartStatus
   weight_kg: number | null
+  contact_phone: string | null
   category: Category
   images: PartImage[]
   car_generations: CarGeneration[]
