@@ -34,3 +34,12 @@ def restore_sale(audit_id: str) -> tuple[Response, int]:
     log.deleted_at = None
     db.session.commit()
     return jsonify({"ok": True}), 200
+
+
+@bp.delete("/<audit_id>/permanent")
+@require_role("admin")
+def permanent_delete_sale(audit_id: str) -> tuple[Response, int]:
+    log = _get_sale(audit_id)
+    db.session.delete(log)
+    db.session.commit()
+    return jsonify({"ok": True}), 200

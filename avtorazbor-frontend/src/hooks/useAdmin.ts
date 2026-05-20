@@ -26,6 +26,17 @@ export function useRestoreSale() {
   })
 }
 
+export function usePermanentDeleteSale() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (auditId: string) => adminApi.permanentDeleteSale(auditId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
 export function useAdminDashboard() {
   return useQuery({ queryKey: queryKeys.adminDashboard, queryFn: adminApi.getDashboard })
 }

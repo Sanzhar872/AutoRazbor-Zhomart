@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { useAdminDashboard, useDeleteSale, useRestoreSale } from '@/hooks/useAdmin'
+import { useAdminDashboard, useDeleteSale, useRestoreSale, usePermanentDeleteSale } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/lib/formatPrice'
@@ -208,7 +208,9 @@ function SaleRow({ sale }: { sale: SaleRecord }) {
 }
 
 function DeletedSaleRow({ sale }: { sale: SaleRecord }) {
-  const { mutate: restoreSale, isPending } = useRestoreSale()
+  const { mutate: restoreSale, isPending: isRestoring } = useRestoreSale()
+  const { mutate: permanentDelete, isPending: isDeleting } = usePermanentDeleteSale()
+  const isPending = isRestoring || isDeleting
   const deletedAgo = sale.deleted_at
     ? formatDistanceToNow(new Date(sale.deleted_at), { addSuffix: true, locale: ru })
     : ''
@@ -233,6 +235,14 @@ function DeletedSaleRow({ sale }: { sale: SaleRecord }) {
         className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-all disabled:opacity-40"
       >
         <RotateCcw size={14} />
+      </button>
+      <button
+        onClick={() => permanentDelete(sale.id)}
+        disabled={isPending}
+        title="Удалить навсегда"
+        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
+      >
+        <Trash2 size={14} />
       </button>
     </div>
   )

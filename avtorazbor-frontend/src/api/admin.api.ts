@@ -70,4 +70,7 @@ export const adminApi = {
 
   restoreSale: (auditId: string) =>
     client.post(`/admin/sales/${auditId}/restore`).then((r) => r.data),
+
+  permanentDeleteSale: (auditId: string) =>
+    client.delete(`/admin/sales/${auditId}/permanent`).then((r) => r.data),
 }
