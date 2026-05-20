@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     CONTACT_PHONE_2: str = "+77777241010"
     CONTACT_PHONE_DISPLAY_2: str = "7 777 724 1010"
     WORKING_HOURS: str = "Пн–Сб 9:00–18:00"
-    SHOP_ADDRESS: str = "г. Алматы"
+    SHOP_ADDRESS: str = "г. Алматы проспект Райымбека 550"
     WHATSAPP_NUMBER: str = "77759353595"
 
     # Media
