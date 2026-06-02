@@ -57,7 +57,6 @@ export function HeroBanner() {
             className="absolute inset-0 w-full h-full"
             style={{ border: 'none' }}
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
             allowFullScreen
           />
         </div>
