@@ -71,10 +71,10 @@ export function LoginPageClient() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-[34px] text-text-muted hover:text-text-primary"
+              className="absolute right-3 bottom-[9px] text-text-muted hover:text-text-primary"
               tabIndex={-1}
             >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showPassword ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}
             </button>
           </div>
           <Button type="submit" loading={isSubmitting} className="w-full mt-1">
