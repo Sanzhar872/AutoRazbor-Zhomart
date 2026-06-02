@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { Phone, MapPin, Clock } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
@@ -20,9 +22,9 @@ export function Footer() {
           <div className="space-y-2">
             <p className="font-medium text-text-primary text-sm">Навигация</p>
             <nav className="flex flex-col gap-1.5">
-              <Link to={ROUTES.CATALOG} className="text-sm text-text-secondary hover:text-accent transition-colors">Каталог</Link>
-              <Link to={ROUTES.SEARCH} className="text-sm text-text-secondary hover:text-accent transition-colors">Поиск</Link>
-              <Link to={ROUTES.FAVORITES} className="text-sm text-text-secondary hover:text-accent transition-colors">Избранное</Link>
+              <Link href={ROUTES.CATALOG} className="text-sm text-text-secondary hover:text-accent transition-colors">Каталог</Link>
+              <Link href={ROUTES.SEARCH} className="text-sm text-text-secondary hover:text-accent transition-colors">Поиск</Link>
+              <Link href={ROUTES.FAVORITES} className="text-sm text-text-secondary hover:text-accent transition-colors">Избранное</Link>
             </nav>
           </div>
 

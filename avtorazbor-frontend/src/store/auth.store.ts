@@ -1,5 +1,7 @@
+'use client'
+
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { User } from '@/types/user'
 
 interface AuthState {
@@ -9,6 +11,21 @@ interface AuthState {
   setAuth: (user: User, accessToken: string, refreshToken: string) => void
   setAccessToken: (token: string) => void
   clearAuth: () => void
+}
+
+const ssrSafeStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(name)
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(name, value)
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(name)
+  },
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -24,10 +41,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'avtorazbor-auth',
+      storage: createJSONStorage(() => ssrSafeStorage),
       partialize: (s) => ({
         user: s.user,
         refreshToken: s.refreshToken,
-        // accessToken intentionally NOT persisted — keep in memory only
       }),
     }
   )

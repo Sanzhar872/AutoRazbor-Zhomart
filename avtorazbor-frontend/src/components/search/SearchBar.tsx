@@ -1,6 +1,8 @@
+'use client'
+
 import { useState, useRef, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { useUiStore } from '@/store/ui.store'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/cn'
@@ -8,7 +10,7 @@ import { cn } from '@/lib/cn'
 export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
   const { searchQuery, setSearchQuery } = useUiStore()
   const [local, setLocal] = useState(searchQuery)
-  const navigate = useNavigate()
+  const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export function SearchBar({ autoFocus }: { autoFocus?: boolean }) {
     e.preventDefault()
     if (!local.trim()) return
     setSearchQuery(local)
-    navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(local.trim())}`)
+    router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(local.trim())}`)
   }
 
   return (

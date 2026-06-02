@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/store/auth.store'
 import { ROUTES } from '@/constants/routes'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '/api/v1'
 
 export const client = axios.create({
   baseURL: BASE_URL,
@@ -52,7 +52,7 @@ client.interceptors.response.use(
         return client(original)
       } catch {
         useAuthStore.getState().clearAuth()
-        window.location.href = ROUTES.LOGIN
+        if (typeof window !== 'undefined') window.location.href = ROUTES.LOGIN
       } finally {
         isRefreshing = false
       }

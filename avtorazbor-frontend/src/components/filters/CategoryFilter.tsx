@@ -1,3 +1,5 @@
+'use client'
+
 import { ChevronRight } from 'lucide-react'
 import { useCategories } from '@/hooks/useCategories'
 import { cn } from '@/lib/cn'

@@ -1,6 +1,8 @@
+'use client'
+
 import { useState } from 'react'
 import { Heart, LogIn } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/cn'
 import { useAuthStore } from '@/store/auth.store'
 import { useToggleFavorite } from '@/hooks/useFavorites'
@@ -15,7 +17,7 @@ interface FavoriteButtonProps {
 
 export function FavoriteButton({ partId, partSlug, meta }: FavoriteButtonProps) {
   const user = useAuthStore((s) => s.user)
-  const navigate = useNavigate()
+  const router = useRouter()
   const { mutate, isPending } = useToggleFavorite(partSlug)
   const [pulse, setPulse] = useState(false)
 
@@ -24,7 +26,7 @@ export function FavoriteButton({ partId, partSlug, meta }: FavoriteButtonProps) 
   if (!user) {
     return (
       <button
-        onClick={() => navigate(`${ROUTES.LOGIN}?next=/catalog/${partSlug}`)}
+        onClick={() => router.push(`${ROUTES.LOGIN}?next=/catalog/${partSlug}`)}
         className="flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium border border-border bg-bg-elevated text-text-secondary hover:border-accent hover:text-accent transition-all"
       >
         <LogIn size={17} />
@@ -54,7 +56,6 @@ export function FavoriteButton({ partId, partSlug, meta }: FavoriteButtonProps) 
   const handleClick = () => {
     setPulse(true)
     setTimeout(() => setPulse(false), 350)
-    // Pass the current isFav state explicitly — avoids stale cache reads
     mutate({ partId, isFav: is_favorited_by_me })
   }
 

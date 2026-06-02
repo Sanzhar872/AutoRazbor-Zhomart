@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
-import { Heart } from 'lucide-react'
+'use client'
+
+import Link from 'next/link'
 import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/lib/formatPrice'
 import { resolveUrl } from '@/lib/resolveUrl'
@@ -16,10 +17,9 @@ export function PartCard({ part }: PartCardProps) {
 
   return (
     <Link
-      to={ROUTES.PART(part.slug)}
+      href={ROUTES.PART(part.slug)}
       className="group flex flex-col bg-bg-surface border border-border rounded-lg overflow-hidden hover:-translate-y-0.5 hover:shadow-card hover:border-border-focus/50 transition-all duration-150"
     >
-      {/* Image */}
       <div className="relative aspect-[4/3] bg-bg-elevated overflow-hidden">
         {primaryImage ? (
           <img
@@ -42,19 +42,16 @@ export function PartCard({ part }: PartCardProps) {
         )}
       </div>
 
-      {/* Content */}
       <div className="flex flex-col gap-2 p-3 flex-1">
         <p className="text-sm font-medium text-text-primary line-clamp-2 leading-snug">
           {part.title}
         </p>
-
         <div className="flex items-center gap-2 flex-wrap">
           <PartConditionBadge condition={part.condition} />
           {part.stock > 0 && (
             <span className="text-xs text-text-muted">{part.stock} шт</span>
           )}
         </div>
-
         <p className="text-base font-bold text-text-primary mt-auto">
           {formatPrice(part.price_kzt)}
         </p>

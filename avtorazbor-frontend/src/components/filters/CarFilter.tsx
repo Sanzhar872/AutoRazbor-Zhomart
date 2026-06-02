@@ -1,3 +1,5 @@
+'use client'
+
 import { useCarMakes, useCarModels, useCarGenerations } from '@/hooks/useCars'
 import { S } from '@/constants/strings.ru'
 

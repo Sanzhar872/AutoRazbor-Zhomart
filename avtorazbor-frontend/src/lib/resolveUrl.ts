@@ -1,4 +1,4 @@
-const BACKEND = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:5000'
+const BACKEND = process.env.NEXT_PUBLIC_API_HOST ?? 'http://localhost:5000'
 
 export function resolveUrl(url: string | null | undefined): string {
   if (!url) return ''

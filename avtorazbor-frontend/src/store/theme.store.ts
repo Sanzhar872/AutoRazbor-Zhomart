@@ -1,5 +1,7 @@
+'use client'
+
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 type Theme = 'dark' | 'light'
 
@@ -10,7 +12,24 @@ interface ThemeState {
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.setAttribute('data-theme', theme)
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
+
+const ssrSafeStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(name)
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(name, value)
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(name)
+  },
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -30,6 +49,7 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'avtorazbor-theme',
+      storage: createJSONStorage(() => ssrSafeStorage),
       onRehydrateStorage: () => (state) => {
         if (state) applyTheme(state.theme)
       },
