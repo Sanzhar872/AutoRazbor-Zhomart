@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import Link from 'next/link'
 import { Plus, Edit, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -36,15 +36,26 @@ function formatDate(iso: string) {
   })
 }
 
+function groupByCategory(items: import('@/types/part').PartListItem[]) {
+  const map = new Map<string, { name: string; items: import('@/types/part').PartListItem[] }>()
+  for (const part of items) {
+    const key = part.category.name
+    if (!map.has(key)) map.set(key, { name: key, items: [] })
+    map.get(key)!.items.push(part)
+  }
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+}
+
 export function PartsListPageClient() {
-  const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('')
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.parts({ page, per_page: 20, status: statusFilter }),
-    queryFn: () => partsApi.list({ page, per_page: 20, status: statusFilter }),
+    queryKey: queryKeys.parts({ page: 1, per_page: 500, status: statusFilter }),
+    queryFn: () => partsApi.list({ page: 1, per_page: 500, status: statusFilter }),
   })
+
+  const grouped = data ? groupByCategory(data.items) : []
 
   const deleteMutation = useMutation({
     mutationFn: partsApi.delete,
@@ -115,7 +126,7 @@ export function PartsListPageClient() {
                         </td>
                       </tr>
                     ))
-                  : data?.items.length === 0
+                  : grouped.length === 0
                   ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-text-muted text-sm">
@@ -123,95 +134,82 @@ export function PartsListPageClient() {
                       </td>
                     </tr>
                   )
-                  : data?.items.map((part) => {
-                      const badge = STATUS_BADGE[part.status] ?? { label: part.status, variant: 'neutral' as const }
-                      return (
-                        <tr key={part.id} className="hover:bg-bg-elevated/50 transition-colors">
-                          <td className="px-4 py-3 max-w-[220px]">
-                            <Link
-                              href={ROUTES.PART(part.slug)}
-                              target="_blank"
-                              className="text-text-primary hover:text-accent transition-colors line-clamp-1"
-                            >
-                              {part.title}
-                            </Link>
-                          </td>
-                          <td className="px-4 py-3 text-text-secondary hidden md:table-cell">
-                            {part.category.name}
-                          </td>
-                          <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-text-primary">
-                            {formatPrice(part.price_kzt)}
-                          </td>
-                          <td className="px-4 py-3 text-right hidden lg:table-cell">
-                            <span className={
-                              part.stock === 0
-                                ? 'text-danger font-medium'
-                                : part.stock < 5
-                                ? 'text-warning font-medium'
-                                : 'text-text-primary'
-                            }>
-                              {part.stock} шт
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-text-muted whitespace-nowrap hidden lg:table-cell">
-                            {formatDate(part.created_at)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Badge variant={badge.variant}>{badge.label}</Badge>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2 justify-end">
+                  : grouped.map((group) => (
+                    <Fragment key={`cat-${group.name}`}>
+                      <tr>
+                        <td colSpan={7} className="px-4 py-2 bg-bg-elevated border-y border-border">
+                          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                            {group.name} ({group.items.length})
+                          </span>
+                        </td>
+                      </tr>
+                      {group.items.map((part) => {
+                        const badge = STATUS_BADGE[part.status] ?? { label: part.status, variant: 'neutral' as const }
+                        return (
+                          <tr key={part.id} className="hover:bg-bg-elevated/50 transition-colors">
+                            <td className="px-4 py-3 max-w-[220px]">
                               <Link
-                                href={ROUTES.ADMIN_PART_EDIT(part.slug)}
-                                className="p-1.5 text-text-muted hover:text-text-primary transition-colors rounded"
-                                title="Редактировать"
+                                href={ROUTES.PART(part.slug)}
+                                target="_blank"
+                                className="text-text-primary hover:text-accent transition-colors line-clamp-1"
                               >
-                                <Edit size={14} />
+                                {part.title}
                               </Link>
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Удалить «${part.title}»?`)) {
-                                    deleteMutation.mutate(part.id)
-                                  }
-                                }}
-                                className="p-1.5 text-text-muted hover:text-danger transition-colors rounded"
-                                title="Удалить"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
+                            </td>
+                            <td className="px-4 py-3 text-text-secondary hidden md:table-cell">
+                              {part.category.name}
+                            </td>
+                            <td className="px-4 py-3 text-right whitespace-nowrap font-semibold text-text-primary">
+                              {formatPrice(part.price_kzt)}
+                            </td>
+                            <td className="px-4 py-3 text-right hidden lg:table-cell">
+                              <span className={
+                                part.stock === 0
+                                  ? 'text-danger font-medium'
+                                  : part.stock < 5
+                                  ? 'text-warning font-medium'
+                                  : 'text-text-primary'
+                              }>
+                                {part.stock} шт
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-text-muted whitespace-nowrap hidden lg:table-cell">
+                              {formatDate(part.created_at)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <Badge variant={badge.variant}>{badge.label}</Badge>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2 justify-end">
+                                <Link
+                                  href={ROUTES.ADMIN_PART_EDIT(part.slug)}
+                                  className="p-1.5 text-text-muted hover:text-text-primary transition-colors rounded"
+                                  title="Редактировать"
+                                >
+                                  <Edit size={14} />
+                                </Link>
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Удалить «${part.title}»?`)) {
+                                      deleteMutation.mutate(part.id)
+                                    }
+                                  }}
+                                  className="p-1.5 text-text-muted hover:text-danger transition-colors rounded"
+                                  title="Удалить"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </Fragment>
+                  ))}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination */}
-          {data && data.pages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-              <span className="text-xs text-text-muted">
-                Стр. {page} из {data.pages}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 text-xs border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors"
-                >
-                  ← Назад
-                </button>
-                <button
-                  onClick={() => setPage(p => Math.min(data.pages, p + 1))}
-                  disabled={page === data.pages}
-                  className="px-3 py-1.5 text-xs border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors"
-                >
-                  Вперёд →
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>
