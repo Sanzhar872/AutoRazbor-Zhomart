@@ -16,8 +16,8 @@ from app.utils.pwhash import hash_password
 app = create_app()
 
 with app.app_context():
-    email = os.environ.get("ADMIN_EMAIL", "bary@150")
-    password = os.environ.get("ADMIN_PASSWORD", "kbtu24bd")
+    email = os.environ.get("ADMIN_EMAIL", "admin@avtorazbor.kz")
+    password = os.environ.get("ADMIN_PASSWORD", "changeme123")
     full_name = os.environ.get("ADMIN_NAME", "Администратор")
 
     existing = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
