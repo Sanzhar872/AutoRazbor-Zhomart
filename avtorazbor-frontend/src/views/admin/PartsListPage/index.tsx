@@ -81,7 +81,7 @@ export function PartsListPageClient() {
               {STATUS_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => { setStatusFilter(opt.value); setPage(1) }}
+                  onClick={() => { setStatusFilter(opt.value) }}
                   className={cn(
                     'px-3 py-1 rounded-md text-xs font-medium transition-colors',
                     statusFilter === opt.value
