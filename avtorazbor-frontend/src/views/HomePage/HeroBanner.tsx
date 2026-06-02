@@ -4,9 +4,8 @@ import Link from 'next/link'
 import { Phone, ArrowRight } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
+import { DGisMap } from '@/components/map/DGisMap'
 
-const GMAPS_EMBED =
-  'https://maps.google.com/maps?q=%D0%BF%D1%80%D0%BE%D1%81%D0%BF%D0%B5%D0%BA%D1%82+%D0%A0%D0%B0%D0%B9%D1%8B%D0%BC%D0%B1%D0%B5%D0%BA%D0%B0+550+%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B+%D0%9A%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D1%82%D0%B0%D0%BD&output=embed&z=16&hl=ru'
 
 export function HeroBanner() {
   const { data: config } = useConfig()
@@ -51,14 +50,7 @@ export function HeroBanner() {
         </div>
 
         <div className="relative min-h-[280px] md:min-h-0">
-          <iframe
-            src={GMAPS_EMBED}
-            title="Наш адрес на карте"
-            className="absolute inset-0 w-full h-full"
-            style={{ border: 'none' }}
-            loading="lazy"
-            allowFullScreen
-          />
+          <DGisMap />
         </div>
       </div>
     </section>
