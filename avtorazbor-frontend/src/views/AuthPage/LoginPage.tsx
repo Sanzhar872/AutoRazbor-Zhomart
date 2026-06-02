@@ -71,7 +71,7 @@ export function LoginPageClient() {
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 bottom-[9px] text-text-muted hover:text-text-primary"
+              className="absolute right-3 bottom-[9px] text-text-muted hover:text-text-primary p-1 pl-0"
               tabIndex={-1}
             >
               {showPassword ? <EyeOff size={18} strokeWidth={2.5} /> : <Eye size={18} strokeWidth={2.5} />}
