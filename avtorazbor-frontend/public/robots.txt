@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /admin/
+Disallow: /favorites
+Disallow: /profile
+
+Sitemap: https://avto-razbor-zhomart.vercel.app/sitemap.xml
