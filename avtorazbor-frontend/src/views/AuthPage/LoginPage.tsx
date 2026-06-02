@@ -6,6 +6,8 @@ import { z } from 'zod'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { useState } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { authApi } from '@/api/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { Input } from '@/components/ui/Input'
@@ -23,6 +25,7 @@ export function LoginPageClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -57,13 +60,23 @@ export function LoginPageClient() {
             error={errors.email?.message}
             {...register('email')}
           />
-          <Input
-            label="Пароль"
-            type="password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            {...register('password')}
-          />
+          <div className="relative">
+            <Input
+              label="Пароль"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              error={errors.password?.message}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-[34px] text-text-muted hover:text-text-primary"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
           <Button type="submit" loading={isSubmitting} className="w-full mt-1">
             Войти
           </Button>
