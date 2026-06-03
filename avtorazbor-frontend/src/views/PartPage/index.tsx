@@ -186,13 +186,22 @@ export function PartPageClient({ slug }: Props) {
                 </a>
                 <p className="text-xs text-text-muted">{config.working_hours}</p>
                 <a
-                  href={config.whatsapp_link}
+                  href="https://wa.me/77759353595?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-success hover:underline"
                 >
                   <MessageCircle size={15} />
-                  Написать в WhatsApp
+                  WhatsApp: 8 775 935 3595
+                </a>
+                <a
+                  href="https://wa.me/77777241010?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-success hover:underline"
+                >
+                  <MessageCircle size={15} />
+                  WhatsApp: 8 777 724 1010
                 </a>
               </div>
             )}
@@ -216,7 +225,16 @@ export function PartPageClient({ slug }: Props) {
             className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-accent text-white text-sm font-semibold shadow-card"
           >
             <Phone size={18} />
-            Позвонить: {part.contact_phone ?? config.contact_phone_display}
+            Позвонить
+          </a>
+          <a
+            href="https://wa.me/77759353595?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] text-white text-sm font-semibold shadow-card"
+          >
+            <MessageCircle size={18} />
+            WhatsApp
           </a>
         </div>
       )}
