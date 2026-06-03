@@ -6,6 +6,8 @@ import { Plus, Edit, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { partsApi } from '@/api/parts.api'
+import { categoriesApi } from '@/api/categories.api'
+import type { Category } from '@/types/category'
 import { queryKeys } from '@/constants/queryKeys'
 import { getApiError } from '@/api/client'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -36,11 +38,31 @@ function formatDate(iso: string) {
   })
 }
 
-function groupByCategory(items: import('@/types/part').PartListItem[]) {
-  const map = new Map<string, { name: string; items: import('@/types/part').PartListItem[] }>()
+function buildParentMap(cats: Category[]): Map<string, string> {
+  const map = new Map<string, Category>()
+  const flat = (list: Category[]) => list.forEach(c => { map.set(c.id, c); flat(c.children) })
+  flat(cats)
+  const parentName = new Map<string, string>()
+  map.forEach((cat) => {
+    if (cat.parent_id && map.has(cat.parent_id)) {
+      parentName.set(cat.id, map.get(cat.parent_id)!.name)
+    }
+  })
+  return parentName
+}
+
+function groupByCategory(
+  items: import('@/types/part').PartListItem[],
+  parentMap: Map<string, string>
+) {
+  const map = new Map<string, { name: string; parent: string | null; items: import('@/types/part').PartListItem[] }>()
   for (const part of items) {
-    const key = part.category.name
-    if (!map.has(key)) map.set(key, { name: key, items: [] })
+    const key = part.category.id
+    if (!map.has(key)) map.set(key, {
+      name: part.category.name,
+      parent: parentMap.get(part.category.id) ?? null,
+      items: [],
+    })
     map.get(key)!.items.push(part)
   }
   return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
@@ -55,7 +77,13 @@ export function PartsListPageClient() {
     queryFn: () => partsApi.list({ page: 1, per_page: 500, status: statusFilter }),
   })
 
-  const grouped = data ? groupByCategory(data.items) : []
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: categoriesApi.list,
+  })
+
+  const parentMap = categories ? buildParentMap(categories) : new Map<string, string>()
+  const grouped = data ? groupByCategory(data.items, parentMap) : []
 
   const deleteMutation = useMutation({
     mutationFn: partsApi.delete,
@@ -139,7 +167,7 @@ export function PartsListPageClient() {
                       <tr>
                         <td colSpan={7} className="px-4 py-2 bg-bg-elevated border-y border-border">
                           <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
-                            {group.name} ({group.items.length})
+                            {group.parent && <>{group.parent} → </>}{group.name} ({group.items.length})
                           </span>
                         </td>
                       </tr>
