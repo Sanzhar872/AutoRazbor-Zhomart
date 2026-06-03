@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { BottomSheet } from '@/components/ui/BottomSheet'
 import { Button } from '@/components/ui/Button'
 import { PageContainer } from '@/components/layout/PageContainer'
-import { CarFilter } from '@/components/filters/CarFilter'
 import { CategoryFilter } from '@/components/filters/CategoryFilter'
 import { PriceRangeFilter } from '@/components/filters/PriceRangeFilter'
 import { ConditionFilter } from '@/components/filters/ConditionFilter'
@@ -39,13 +38,6 @@ export function CatalogPageClient() {
       <CategoryFilter
         selectedId={filters.category_id}
         onChange={(v) => update({ category_id: v })}
-      />
-      <div className="border-t border-border" />
-      <CarFilter
-        makeId={filters.make_id}
-        modelId={filters.model_id}
-        generationId={filters.generation_id}
-        onChange={(field, value) => update({ [field]: value })}
       />
       <div className="border-t border-border" />
       <PriceRangeFilter
