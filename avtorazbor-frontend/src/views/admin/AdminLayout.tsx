@@ -7,7 +7,7 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/cn'
 import { useAuthStore } from '@/store/auth.store'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 const links = [
   { to: ROUTES.ADMIN, icon: LayoutDashboard, label: 'Журнал', exact: true },
@@ -20,15 +20,17 @@ const links = [
 export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const user = useAuthStore((s) => s.user)
-  const hasHydrated = useAuthStore((s) => s._hasHydrated)
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
-    if (!hasHydrated) return
+    if (!mounted) return
     if (!user || user.role !== 'admin') router.replace('/')
-  }, [user, hasHydrated, router])
+  }, [user, mounted, router])
 
-  if (!hasHydrated) return null
+  if (!mounted) return null
   if (!user || user.role !== 'admin') return null
 
   const linkClass = (to: string, exact = false) =>
