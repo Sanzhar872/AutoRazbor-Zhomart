@@ -35,7 +35,7 @@ const ssrSafeStorage = {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      theme: 'dark',
+      theme: 'light',
       toggleTheme: () =>
         set((s) => {
           const next: Theme = s.theme === 'dark' ? 'light' : 'dark'
