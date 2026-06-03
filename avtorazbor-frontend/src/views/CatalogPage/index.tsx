@@ -84,7 +84,7 @@ export function CatalogPageClient() {
               <input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={filters.category_id ? 'Поиск запчастей, OEM номер...' : 'Сначала выберите категорию...'}
+                placeholder="Выберите категорию"
                 className="w-full pl-9 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-border-focus/30 transition-colors"
               />
             </div>
