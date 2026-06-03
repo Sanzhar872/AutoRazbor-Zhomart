@@ -42,8 +42,8 @@ export const adminApi = {
   getDashboard: () =>
     client.get<DashboardData>('/admin/dashboard').then((r) => r.data),
 
-  getStock: () =>
-    client.get('/admin/stock').then((r) => r.data),
+  getStock: (q?: string) =>
+    client.get('/admin/stock', { params: q ? { q } : undefined }).then((r) => r.data),
 
   increaseStock: (partId: string, delta: number, comment?: string) =>
     client

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Fragment, useMemo } from 'react'
+import { useState, Fragment, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus, Edit, Trash2, Search } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -71,11 +71,17 @@ function groupByCategory(
 export function PartsListPageClient() {
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 400)
+    return () => clearTimeout(t)
+  }, [search])
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.parts({ page: 1, per_page: 500, status: statusFilter }),
-    queryFn: () => partsApi.list({ page: 1, per_page: 500, status: statusFilter }),
+    queryKey: queryKeys.parts({ page: 1, per_page: 500, status: statusFilter, q: debouncedSearch }),
+    queryFn: () => partsApi.list({ page: 1, per_page: 500, status: statusFilter, q: debouncedSearch || undefined }),
   })
 
   const { data: categories } = useQuery({
@@ -85,14 +91,7 @@ export function PartsListPageClient() {
 
   const parentMap = categories ? buildParentMap(categories) : new Map<string, string>()
 
-  const filteredItems = useMemo(() => {
-    if (!data) return []
-    const q = search.toLowerCase().trim()
-    if (!q) return data.items
-    return data.items.filter(p => p.title.toLowerCase().includes(q))
-  }, [data, search])
-
-  const grouped = groupByCategory(filteredItems, parentMap)
+  const grouped = groupByCategory(data?.items ?? [], parentMap)
 
   const deleteMutation = useMutation({
     mutationFn: partsApi.delete,
@@ -110,7 +109,7 @@ export function PartsListPageClient() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-text-primary">Запчасти</h1>
             {data && (
-              <span className="text-sm text-text-muted">({filteredItems.length})</span>
+              <span className="text-sm text-text-muted">({data.total})</span>
             )}
           </div>
           <div className="relative flex-1 max-w-sm">

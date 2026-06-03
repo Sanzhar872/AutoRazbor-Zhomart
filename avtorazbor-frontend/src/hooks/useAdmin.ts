@@ -41,8 +41,11 @@ export function useAdminDashboard() {
   return useQuery({ queryKey: queryKeys.adminDashboard, queryFn: adminApi.getDashboard })
 }
 
-export function useAdminStock() {
-  return useQuery({ queryKey: queryKeys.adminStock, queryFn: adminApi.getStock })
+export function useAdminStock(q?: string) {
+  return useQuery({
+    queryKey: [...queryKeys.adminStock, q ?? ''],
+    queryFn: () => adminApi.getStock(q),
+  })
 }
 
 export function useStockChange() {

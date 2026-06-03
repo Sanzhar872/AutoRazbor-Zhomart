@@ -81,7 +81,7 @@ def get_parts(
         select(func.count()).select_from(stmt.subquery())
     ).scalar_one()
 
-    per_page = min(per_page, 100)
+    per_page = min(per_page, 500)
     page = max(page, 1)
     items = list(db.session.execute(
         stmt.offset((page - 1) * per_page).limit(per_page)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { ShoppingCart, RotateCcw, Package, Search } from 'lucide-react'
 import { useAdminStock, useStockChange } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -25,21 +25,20 @@ interface StockItem {
 type ModalMode = 'sold' | 'return' | null
 
 export function StockPageClient() {
-  const { data: items, isLoading } = useAdminStock()
-  const { mutate: changeStock, isPending } = useStockChange()
-
   const [selected, setSelected] = useState<StockItem | null>(null)
   const [mode, setMode] = useState<ModalMode>(null)
   const [qty, setQty] = useState('1')
   const [comment, setComment] = useState('')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
-  const filtered = useMemo(() => {
-    if (!items) return []
-    const q = search.toLowerCase().trim()
-    if (!q) return items as StockItem[]
-    return (items as StockItem[]).filter(i => i.title.toLowerCase().includes(q))
-  }, [items, search])
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 400)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const { data: items, isLoading } = useAdminStock(debouncedSearch || undefined)
+  const { mutate: changeStock, isPending } = useStockChange()
 
   const open = (item: StockItem, m: ModalMode) => {
     setSelected(item)
@@ -127,7 +126,7 @@ export function StockPageClient() {
                         </td>
                       </tr>
                     ))
-                  : filtered.map((item) => (
+                  : (items as StockItem[])?.map((item) => (
                       <tr key={item.id} className="hover:bg-bg-elevated/40 transition-colors group">
                         <td className="px-4 py-3 max-w-[240px]">
                           <p className="text-text-primary font-medium truncate">{item.title}</p>

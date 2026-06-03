@@ -31,9 +31,11 @@ class StockSetSchema(Schema):
 @bp.get("/")
 @require_role("admin")
 def list_stock() -> tuple[Response, int]:
-    parts = list(db.session.execute(
-        select(Part).where(Part.deleted_at.is_(None)).order_by(Part.title)
-    ).scalars())
+    q = request.args.get("q", "").strip()
+    stmt = select(Part).where(Part.deleted_at.is_(None)).order_by(Part.title)
+    if q:
+        stmt = stmt.where(Part.title.ilike(f"%{q}%"))
+    parts = list(db.session.execute(stmt).scalars())
 
     # Bulk calculate net_sold per part (sold - returned)
     audit_rows = db.session.execute(
