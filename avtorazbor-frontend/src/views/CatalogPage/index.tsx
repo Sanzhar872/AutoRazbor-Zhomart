@@ -76,7 +76,7 @@ export function CatalogPageClient() {
 
         <div className="flex-1 min-w-0">
           <div className="mb-4">
-            <SearchBar />
+            <SearchBar showButton />
           </div>
           <div className="flex items-center gap-3 mb-4">
             <button

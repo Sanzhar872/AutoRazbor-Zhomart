@@ -18,6 +18,7 @@ export function Header() {
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith('/admin')
   const isHome = pathname === '/'
+  const isCatalog = pathname === '/catalog'
 
   return (
     <header className="sticky top-0 z-40 bg-bg-surface border-b border-border transition-theme">
@@ -27,7 +28,7 @@ export function Header() {
             <span className="text-accent font-bold text-xl">АвтоРазбор</span>
           </Link>
 
-          {!isAdmin && !isHome && (
+          {!isAdmin && !isHome && !isCatalog && (
             <div className="hidden md:flex flex-1 max-w-xl">
               <SearchBar />
             </div>
