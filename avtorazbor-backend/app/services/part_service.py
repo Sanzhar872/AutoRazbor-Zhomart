@@ -51,9 +51,9 @@ def get_parts(
     if q:
         stmt = stmt.where(
             or_(
-                Part.search_vector.op("@@")(func.plainto_tsquery("russian", q)),
                 Part.title.ilike(f"%{q}%"),
                 Part.oem_number.ilike(f"%{q}%"),
+                Part.description.ilike(f"%{q}%"),
             )
         )
     if generation_id:
