@@ -15,6 +15,14 @@ import { formatPrice } from '@/lib/formatPrice'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
 
+const WA_TEXT = encodeURIComponent('Привет! Пишу с сайта, меня интересует…')
+
+function buildWaLink(phone: string) {
+  const digits = phone.replace(/\D/g, '')
+  const normalized = digits.startsWith('8') ? '7' + digits.slice(1) : digits
+  return `https://wa.me/${normalized}?text=${WA_TEXT}`
+}
+
 interface Props {
   slug: string
 }
@@ -186,22 +194,13 @@ export function PartPageClient({ slug }: Props) {
                 </a>
                 <p className="text-xs text-text-muted">{config.working_hours}</p>
                 <a
-                  href="https://wa.me/77759353595?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
+                  href={buildWaLink(part.contact_phone ?? config.contact_phone)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-success hover:underline"
                 >
                   <MessageCircle size={15} />
-                  WhatsApp: 8 775 935 3595
-                </a>
-                <a
-                  href="https://wa.me/77777241010?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-success hover:underline"
-                >
-                  <MessageCircle size={15} />
-                  WhatsApp: 8 777 724 1010
+                  Написать в WhatsApp
                 </a>
               </div>
             )}
@@ -228,7 +227,7 @@ export function PartPageClient({ slug }: Props) {
             Позвонить
           </a>
           <a
-            href="https://wa.me/77759353595?text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82!%20%D0%9F%D0%B8%D1%88%D1%83%20%D1%81%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0%2C%20%D0%BC%D0%B5%D0%BD%D1%8F%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B5%D1%82%E2%80%A6"
+            href={buildWaLink(part.contact_phone ?? config.contact_phone)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] text-white text-sm font-semibold shadow-card"
