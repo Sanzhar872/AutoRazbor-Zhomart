@@ -105,30 +105,39 @@ export function PartsListPageClient() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold text-text-primary">Запчасти</h1>
-            {data && (
-              <span className="text-sm text-text-muted">({data.total})</span>
-            )}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-text-primary">Запчасти</h1>
+              {data && (
+                <span className="text-sm text-text-muted">({data.total})</span>
+              )}
+            </div>
+            <Link
+              href={ROUTES.ADMIN_PART_NEW}
+              className="flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+            >
+              <Plus size={15} />
+              Добавить
+            </Link>
           </div>
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Поиск по названию..."
-              className="w-full pl-8 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
-            />
-          </div>
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="flex gap-1 bg-bg-elevated border border-border rounded-lg p-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[160px]">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Поиск по названию..."
+                className="w-full pl-8 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
+              />
+            </div>
+            <div className="flex gap-1 bg-bg-elevated border border-border rounded-lg p-1 overflow-x-auto">
               {STATUS_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => { setStatusFilter(opt.value) }}
                   className={cn(
-                    'px-3 py-1 rounded-md text-xs font-medium transition-colors',
+                    'px-3 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap',
                     statusFilter === opt.value
                       ? 'bg-bg-surface text-text-primary shadow-sm'
                       : 'text-text-muted hover:text-text-secondary'
@@ -138,13 +147,6 @@ export function PartsListPageClient() {
                 </button>
               ))}
             </div>
-            <Link
-              href={ROUTES.ADMIN_PART_NEW}
-              className="flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap"
-            >
-              <Plus size={15} />
-              Добавить
-            </Link>
           </div>
         </div>
 
