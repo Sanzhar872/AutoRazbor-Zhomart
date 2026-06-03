@@ -13,6 +13,7 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { CategoryFilter } from '@/components/filters/CategoryFilter'
 import { PriceRangeFilter } from '@/components/filters/PriceRangeFilter'
 import { ConditionFilter } from '@/components/filters/ConditionFilter'
+import { SearchBar } from '@/components/search/SearchBar'
 import type { PartFilters, PartCondition } from '@/types/part'
 
 const SORT_OPTIONS = [
@@ -74,6 +75,9 @@ export function CatalogPageClient() {
         </aside>
 
         <div className="flex-1 min-w-0">
+          <div className="mb-4">
+            <SearchBar />
+          </div>
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={() => setFiltersOpen(true)}

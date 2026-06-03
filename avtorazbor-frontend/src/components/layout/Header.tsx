@@ -17,6 +17,7 @@ export function Header() {
   const router = useRouter()
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith('/admin')
+  const isHome = pathname === '/'
 
   return (
     <header className="sticky top-0 z-40 bg-bg-surface border-b border-border transition-theme">
@@ -26,7 +27,7 @@ export function Header() {
             <span className="text-accent font-bold text-xl">АвтоРазбор</span>
           </Link>
 
-          {!isAdmin && (
+          {!isAdmin && !isHome && (
             <div className="hidden md:flex flex-1 max-w-xl">
               <SearchBar />
             </div>
