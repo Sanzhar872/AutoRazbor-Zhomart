@@ -218,23 +218,25 @@ export function PartPageClient({ slug }: Props) {
       </PageContainer>
 
       {config && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-30 flex md:hidden">
-          <a
-            href={`tel:${part.contact_phone ?? config.contact_phone}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-accent text-white text-sm font-semibold shadow-card"
-          >
-            <Phone size={18} />
-            Позвонить
-          </a>
-          <a
-            href={buildWaLink(part.contact_phone ?? config.contact_phone)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-[#25D366] text-white text-sm font-semibold shadow-card"
-          >
-            <MessageCircle size={18} />
-            WhatsApp
-          </a>
+        <div className="fixed bottom-20 md:bottom-0 left-0 right-0 z-30 md:hidden px-4 pb-2">
+          <div className="flex gap-3 p-3 bg-white/80 dark:bg-bg-surface/80 backdrop-blur-md rounded-2xl shadow-xl border border-border">
+            <a
+              href={`tel:${part.contact_phone ?? config.contact_phone}`}
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent hover:bg-accent-hover active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md"
+            >
+              <Phone size={17} />
+              Позвонить
+            </a>
+            <a
+              href={buildWaLink(part.contact_phone ?? config.contact_phone)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#20b858] active:scale-95 text-white text-sm font-semibold rounded-xl transition-all shadow-md"
+            >
+              <MessageCircle size={17} />
+              WhatsApp
+            </a>
+          </div>
         </div>
       )}
     </>
