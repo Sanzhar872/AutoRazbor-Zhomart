@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, Fragment } from 'react'
+import { useState, Fragment, useMemo } from 'react'
 import Link from 'next/link'
-import { Plus, Edit, Trash2 } from 'lucide-react'
+import { Plus, Edit, Trash2, Search } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { partsApi } from '@/api/parts.api'
@@ -70,6 +70,7 @@ function groupByCategory(
 
 export function PartsListPageClient() {
   const [statusFilter, setStatusFilter] = useState('')
+  const [search, setSearch] = useState('')
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -83,7 +84,15 @@ export function PartsListPageClient() {
   })
 
   const parentMap = categories ? buildParentMap(categories) : new Map<string, string>()
-  const grouped = data ? groupByCategory(data.items, parentMap) : []
+
+  const filteredItems = useMemo(() => {
+    if (!data) return []
+    const q = search.toLowerCase().trim()
+    if (!q) return data.items
+    return data.items.filter(p => p.title.toLowerCase().includes(q))
+  }, [data, search])
+
+  const grouped = groupByCategory(filteredItems, parentMap)
 
   const deleteMutation = useMutation({
     mutationFn: partsApi.delete,
@@ -101,8 +110,17 @@ export function PartsListPageClient() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold text-text-primary">Запчасти</h1>
             {data && (
-              <span className="text-sm text-text-muted">({data.total})</span>
+              <span className="text-sm text-text-muted">({filteredItems.length})</span>
             )}
+          </div>
+          <div className="relative flex-1 max-w-sm">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск по названию..."
+              className="w-full pl-8 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
+            />
           </div>
           <div className="flex items-center gap-2 ml-auto">
             <div className="flex gap-1 bg-bg-elevated border border-border rounded-lg p-1">
