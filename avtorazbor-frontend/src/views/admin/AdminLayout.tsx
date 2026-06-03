@@ -20,12 +20,15 @@ const links = [
 export function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const user = useAuthStore((s) => s.user)
+  const hasHydrated = useAuthStore((s) => s._hasHydrated)
   const router = useRouter()
 
   useEffect(() => {
+    if (!hasHydrated) return
     if (!user || user.role !== 'admin') router.replace('/')
-  }, [user, router])
+  }, [user, hasHydrated, router])
 
+  if (!hasHydrated) return null
   if (!user || user.role !== 'admin') return null
 
   const linkClass = (to: string, exact = false) =>
