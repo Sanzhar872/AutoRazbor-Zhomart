@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal, X, Search } from 'lucide-react'
 import { useParts } from '@/hooks/useParts'
 import { PartCard } from '@/components/parts/PartCard'
 import { PartCardSkeleton } from '@/components/parts/PartCardSkeleton'
@@ -13,7 +13,6 @@ import { PageContainer } from '@/components/layout/PageContainer'
 import { CategoryFilter } from '@/components/filters/CategoryFilter'
 import { PriceRangeFilter } from '@/components/filters/PriceRangeFilter'
 import { ConditionFilter } from '@/components/filters/ConditionFilter'
-import { SearchBar } from '@/components/search/SearchBar'
 import type { PartFilters, PartCondition } from '@/types/part'
 
 const SORT_OPTIONS = [
@@ -26,6 +25,7 @@ const SORT_OPTIONS = [
 export function CatalogPageClient() {
   const [filters, setFilters] = useState<PartFilters>({ sort: 'newest', page: 1, per_page: 20 })
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
   const { data, isLoading } = useParts(filters)
 
   const update = (patch: Partial<PartFilters>) =>
@@ -55,7 +55,7 @@ export function CatalogPageClient() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setFilters({ sort: 'newest', page: 1, per_page: 20 })}
+          onClick={() => { setFilters({ sort: 'newest', page: 1, per_page: 20 }); setSearchInput('') }}
           className="text-danger"
         >
           <X size={14} />
@@ -75,9 +75,27 @@ export function CatalogPageClient() {
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="mb-4">
-            <SearchBar showButton />
-          </div>
+          <form
+            onSubmit={(e) => { e.preventDefault(); update({ q: searchInput || undefined }) }}
+            className="flex gap-2 mb-4"
+          >
+            <div className="relative flex-1">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Поиск запчастей, OEM номер..."
+                className="w-full pl-9 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-border-focus/30 transition-colors"
+              />
+            </div>
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+            >
+              <Search size={15} />
+              Искать
+            </button>
+          </form>
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={() => setFiltersOpen(true)}
@@ -116,7 +134,7 @@ export function CatalogPageClient() {
             <EmptyState
               title="Ничего не найдено"
               description="Попробуйте изменить фильтры"
-              action={{ label: 'Сбросить', onClick: () => setFilters({ sort: 'newest', page: 1, per_page: 20 }) }}
+              action={{ label: 'Сбросить', onClick: () => { setFilters({ sort: 'newest', page: 1, per_page: 20 }); setSearchInput('') } }}
             />
           ) : (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
