@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Search, Heart, User, Sun, Moon, Settings } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useAuthStore } from '@/store/auth.store'
@@ -15,6 +15,8 @@ export function Header() {
   const { theme, toggleTheme } = useThemeStore()
   const { data: config } = useConfig()
   const router = useRouter()
+  const pathname = usePathname()
+  const isAdmin = pathname?.startsWith('/admin')
 
   return (
     <header className="sticky top-0 z-40 bg-bg-surface border-b border-border transition-theme">
@@ -24,9 +26,11 @@ export function Header() {
             <span className="text-accent font-bold text-xl">АвтоРазбор</span>
           </Link>
 
-          <div className="hidden md:flex flex-1 max-w-xl">
-            <SearchBar />
-          </div>
+          {!isAdmin && (
+            <div className="hidden md:flex flex-1 max-w-xl">
+              <SearchBar />
+            </div>
+          )}
 
           <div className="flex items-center gap-1 ml-auto">
             {config && (

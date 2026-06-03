@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ShoppingCart, RotateCcw, Package } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { ShoppingCart, RotateCcw, Package, Search } from 'lucide-react'
 import { useAdminStock, useStockChange } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -32,6 +32,14 @@ export function StockPageClient() {
   const [mode, setMode] = useState<ModalMode>(null)
   const [qty, setQty] = useState('1')
   const [comment, setComment] = useState('')
+  const [search, setSearch] = useState('')
+
+  const filtered = useMemo(() => {
+    if (!items) return []
+    const q = search.toLowerCase().trim()
+    if (!q) return items as StockItem[]
+    return (items as StockItem[]).filter(i => i.title.toLowerCase().includes(q))
+  }, [items, search])
 
   const open = (item: StockItem, m: ModalMode) => {
     setSelected(item)
@@ -71,8 +79,17 @@ export function StockPageClient() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <h1 className="text-xl font-semibold text-text-primary">Склад</h1>
+          <div className="relative flex-1 max-w-sm">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск по названию..."
+              className="w-full pl-8 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
+            />
+          </div>
           <div className="flex items-center gap-3 text-xs text-text-muted">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />
@@ -110,7 +127,7 @@ export function StockPageClient() {
                         </td>
                       </tr>
                     ))
-                  : (items as StockItem[])?.map((item) => (
+                  : filtered.map((item) => (
                       <tr key={item.id} className="hover:bg-bg-elevated/40 transition-colors group">
                         <td className="px-4 py-3 max-w-[240px]">
                           <p className="text-text-primary font-medium truncate">{item.title}</p>
