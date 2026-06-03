@@ -50,7 +50,11 @@ def get_parts(
         stmt = stmt.where(Part.oem_number.ilike(f"%{oem}%"))
     if q:
         stmt = stmt.where(
-            Part.search_vector.op("@@")(func.plainto_tsquery("russian", q))
+            or_(
+                Part.search_vector.op("@@")(func.plainto_tsquery("russian", q)),
+                Part.title.ilike(f"%{q}%"),
+                Part.oem_number.ilike(f"%{q}%"),
+            )
         )
     if generation_id:
         stmt = stmt.join(PartCarModel, PartCarModel.part_id == Part.id).where(
