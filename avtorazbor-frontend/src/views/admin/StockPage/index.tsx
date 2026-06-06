@@ -39,7 +39,9 @@ export function StockPageClient() {
   }, [search])
 
   const { data, isLoading } = useAdminStock(debouncedSearch || undefined, page)
-  const items = data?.items
+  const items = Array.isArray(data) ? data : data?.items
+  const totalPages = Array.isArray(data) ? 1 : (data?.pages ?? 1)
+  const totalItems = Array.isArray(data) ? data?.length : (data?.total ?? 0)
   const { mutate: changeStock, isPending } = useStockChange()
 
   const open = (item: StockItem, m: ModalMode) => {
@@ -177,15 +179,15 @@ export function StockPageClient() {
               </tbody>
             </table>
           </div>
-          {data && data.pages > 1 && (
+          {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-              <span className="text-xs text-text-muted">Стр. {page} из {data.pages} · {data.total} товаров</span>
+              <span className="text-xs text-text-muted">Стр. {page} из {totalPages} · {totalItems} товаров</span>
               <div className="flex gap-2">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                   className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
                   <ChevronLeft size={14} />
                 </button>
-                <button onClick={() => setPage(p => Math.min(data.pages, p + 1))} disabled={page === data.pages}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
                   className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
                   <ChevronRight size={14} />
                 </button>
