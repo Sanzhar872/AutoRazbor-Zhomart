@@ -46,6 +46,21 @@ export function HeroBanner() {
                 {config.contact_phone_display}
               </a>
             )}
+
+            <a
+              href="https://go.2gis.com/OGnqE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bg-elevated hover:bg-border text-text-primary border border-border rounded-md font-medium text-sm transition-all"
+            >
+              <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="16" fill="#1DB954" fillOpacity="0"/>
+                <text x="0" y="0" fontSize="0">2GIS</text>
+                <path d="M16 3C9.373 3 4 8.373 4 15c0 4.418 2.317 8.292 5.785 10.51L16 29l6.215-3.49A11.966 11.966 0 0028 15c0-6.627-5.373-12-12-12z" fill="#1BAD5C"/>
+                <circle cx="16" cy="15" r="5" fill="white"/>
+              </svg>
+              Мы в 2ГИС
+            </a>
           </div>
         </div>
 
