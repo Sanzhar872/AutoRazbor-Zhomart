@@ -30,7 +30,11 @@ def _period_revenue(start: datetime) -> int:
     return_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
-        .where(AuditLog.action == "part.stock.return", AuditLog.created_at >= start)
+        .where(
+            AuditLog.action == "part.stock.return",
+            AuditLog.deleted_at.is_(None),
+            AuditLog.created_at >= start,
+        )
     ).all()
     total -= sum(
         float((log.diff or {}).get("price_kzt") or part.price_kzt) * int((log.diff or {}).get("delta", 1))
@@ -44,14 +48,16 @@ def _sale_record(log: AuditLog, part: Part) -> dict:
     diff = log.diff or {}
     delta = int(diff.get("delta", 1))
     price = float(diff.get("price_kzt") or part.price_kzt)
+    is_return = log.action == "part.stock.return"
     return {
         "id":          str(log.id),
         "part_id":     str(part.id),
         "title":       part.title,
         "slug":        part.slug,
         "price_kzt":   price,
-        "profit":      price * delta,
+        "profit":      -(price * delta) if is_return else price * delta,
         "delta":       delta,
+        "is_return":   is_return,
         "stock_before": diff.get("before"),
         "stock_after":  diff.get("after"),
         "comment":     diff.get("comment", ""),
@@ -87,6 +93,7 @@ def revenue_by_period() -> tuple[Response, int]:
         .join(Part, Part.id == AuditLog.entity_id)
         .where(
             AuditLog.action == "part.stock.return",
+            AuditLog.deleted_at.is_(None),
             AuditLog.created_at >= date_from,
             AuditLog.created_at <= date_to,
         )
@@ -109,8 +116,11 @@ def revenue_by_period() -> tuple[Response, int]:
 @require_role("admin")
 def dashboard() -> tuple[Response, int]:
     now = datetime.now(timezone.utc)
-    today_start  = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    week_start   = today_start - timedelta(days=now.weekday())
+    # Учитываем timezone клиента (offset в минутах, например UTC+5 = -300 от JS getTimezoneOffset)
+    tz_offset_min = int(request.args.get("tz", 0))  # JS: new Date().getTimezoneOffset() (отрицательный для UTC+)
+    local_now = now - timedelta(minutes=tz_offset_min)
+    today_start  = local_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(minutes=tz_offset_min)
+    week_start   = today_start - timedelta(days=local_now.weekday())
     month_start  = today_start.replace(day=1)
 
     total = db.session.execute(
@@ -148,11 +158,14 @@ def dashboard() -> tuple[Response, int]:
         )
     ).scalar_one()
 
-    # Recent sales (not deleted)
+    # Recent operations: sales + returns (not deleted)
     recent_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
-        .where(AuditLog.action == "part.stock.decrease", AuditLog.deleted_at.is_(None))
+        .where(
+            AuditLog.action.in_(["part.stock.decrease", "part.stock.return"]),
+            AuditLog.deleted_at.is_(None),
+        )
         .order_by(AuditLog.created_at.desc())
         .limit(20)
     ).all()

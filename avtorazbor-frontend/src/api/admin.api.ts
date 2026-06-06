@@ -18,6 +18,7 @@ export interface SaleRecord {
   price_kzt: number
   profit: number
   delta: number
+  is_return: boolean
   stock_before: number | null
   stock_after: number | null
   comment: string
@@ -40,7 +41,7 @@ export interface DashboardData {
 
 export const adminApi = {
   getDashboard: () =>
-    client.get<DashboardData>('/admin/dashboard').then((r) => r.data),
+    client.get<DashboardData>('/admin/dashboard', { params: { tz: new Date().getTimezoneOffset() } }).then((r) => r.data),
 
   getStock: (q?: string, page = 1) =>
     client.get('/admin/stock', { params: { ...(q ? { q } : {}), page, per_page: 50 } }).then((r) => r.data),

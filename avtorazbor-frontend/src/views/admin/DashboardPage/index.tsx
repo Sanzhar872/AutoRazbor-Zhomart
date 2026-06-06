@@ -264,28 +264,33 @@ function SaleRow({ sale }: { sale: SaleRecord }) {
   const timeAgo = sale.sold_at
     ? formatDistanceToNow(new Date(sale.sold_at), { addSuffix: true, locale: ru })
     : ''
+  const isReturn = sale.is_return
 
   return (
     <div className="flex items-center gap-3 px-5 py-2.5 hover:bg-bg-elevated/40 transition-colors group">
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-success/10 flex items-center justify-center">
-        <ShoppingCart size={13} className="text-success" />
+      <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${isReturn ? 'bg-warning/10' : 'bg-success/10'}`}>
+        {isReturn ? <RotateCcw size={13} className="text-warning" /> : <ShoppingCart size={13} className="text-success" />}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-text-primary truncate">{sale.title}</p>
-        {sale.comment && <p className="text-xs text-text-muted truncate">{sale.comment}</p>}
+        <p className="text-xs text-text-muted truncate">{isReturn ? 'Возврат' : 'Продано'}{sale.comment ? ` · ${sale.comment}` : ''}</p>
       </div>
       <div className="flex-shrink-0 text-right">
-        <p className="text-sm font-bold text-success">+{formatPrice(sale.profit)}</p>
+        <p className={`text-sm font-bold ${isReturn ? 'text-warning' : 'text-success'}`}>
+          {isReturn ? `-${formatPrice(Math.abs(sale.profit))}` : `+${formatPrice(sale.profit)}`}
+        </p>
         <p className="text-xs text-text-muted">{sale.delta} шт · {timeAgo}</p>
       </div>
-      <button
-        onClick={() => deleteSale(sale.id)}
-        disabled={isPending}
-        title="Удалить в корзину"
-        className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
-      >
-        <Trash2 size={14} />
-      </button>
+      {!isReturn && (
+        <button
+          onClick={() => deleteSale(sale.id)}
+          disabled={isPending}
+          title="Удалить в корзину"
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   )
 }
