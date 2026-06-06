@@ -28,36 +28,34 @@ export function HeroBanner() {
             Тысячи б/у запчастей с проверкой состояния. Звоните — найдём нужное.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Link
               href={ROUTES.CATALOG}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-md font-medium text-sm transition-all active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-md font-medium text-sm transition-all active:scale-[0.98] whitespace-nowrap"
             >
               Смотреть каталог
               <ArrowRight size={16} />
             </Link>
 
-            {config && (
-              <a
-                href={`tel:${config.contact_phone}`}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bg-elevated hover:bg-border text-text-primary border border-border rounded-md font-medium text-sm transition-all"
-              >
-                <Phone size={16} className="text-accent" />
-                {config.contact_phone_display}
-              </a>
-            )}
+            <a
+              href="tel:87759353595"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-bg-elevated hover:bg-border border border-border rounded-md font-medium text-sm transition-all whitespace-nowrap"
+            >
+              <Phone size={15} className="text-accent flex-shrink-0" />
+              8 775 935 3595
+            </a>
 
             <a
               href="https://go.2gis.com/OGnqE"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bg-elevated hover:bg-border text-text-primary border border-border rounded-md font-medium text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-medium text-sm text-white whitespace-nowrap transition-all duration-200 active:scale-[0.96] hover:scale-105 hover:shadow-lg hover:brightness-110 mx-auto"
+              style={{ backgroundColor: '#A6CE38' }}
             >
-              <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="16" fill="#1DB954" fillOpacity="0"/>
-                <text x="0" y="0" fontSize="0">2GIS</text>
-                <path d="M16 3C9.373 3 4 8.373 4 15c0 4.418 2.317 8.292 5.785 10.51L16 29l6.215-3.49A11.966 11.966 0 0028 15c0-6.627-5.373-12-12-12z" fill="#1BAD5C"/>
-                <circle cx="16" cy="15" r="5" fill="white"/>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="11" r="8" stroke="white" strokeWidth="2"/>
+                <circle cx="12" cy="11" r="3.5" fill="white"/>
+                <path d="M12 19l-1.5 3h3L12 19z" fill="white"/>
               </svg>
               Мы в 2ГИС
             </a>
