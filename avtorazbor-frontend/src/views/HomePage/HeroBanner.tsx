@@ -28,7 +28,7 @@ export function HeroBanner() {
             Тысячи б/у запчастей с проверкой состояния. Звоните — найдём нужное.
           </p>
 
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href={ROUTES.CATALOG}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-white rounded-md font-medium text-sm transition-all active:scale-[0.98] whitespace-nowrap"
@@ -49,7 +49,7 @@ export function HeroBanner() {
               href="https://go.2gis.com/OGnqE"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-medium text-sm text-white whitespace-nowrap transition-all duration-200 active:scale-[0.96] hover:scale-105 hover:shadow-lg hover:brightness-110 mx-auto"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-md font-medium text-sm text-white whitespace-nowrap transition-all duration-200 active:scale-[0.96] hover:scale-105 hover:shadow-lg hover:brightness-110"
               style={{ backgroundColor: '#A6CE38' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
