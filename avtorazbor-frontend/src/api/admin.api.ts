@@ -73,4 +73,7 @@ export const adminApi = {
 
   permanentDeleteSale: (auditId: string) =>
     client.delete(`/admin/sales/${auditId}/permanent`).then((r) => r.data),
+
+  getRevenue: (dateFrom: string, dateTo: string) =>
+    client.get('/admin/revenue', { params: { date_from: dateFrom, date_to: dateTo } }).then((r) => r.data),
 }

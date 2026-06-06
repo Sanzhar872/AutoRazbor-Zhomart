@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react'
+import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { useAdminDashboard, useDeleteSale, useRestoreSale, usePermanentDeleteSale } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/lib/formatPrice'
+import { adminApi } from '@/api/admin.api'
 import type { SaleRecord } from '@/api/admin.api'
 import type { ElementType } from 'react'
 
@@ -148,8 +149,90 @@ export function DashboardPageClient() {
             </div>
           )}
         </div>
+
+        {/* Custom period revenue */}
+        <CustomRevenueWidget />
       </div>
     </>
+  )
+}
+
+function CustomRevenueWidget() {
+  const today = new Date().toISOString().slice(0, 10)
+  const [dateFrom, setDateFrom] = useState(today)
+  const [dateTo, setDateTo]     = useState(today)
+  const [result, setResult]     = useState<null | {
+    revenue: number; sales_total: number; returns_total: number
+    sales_count: number; returns_count: number
+  }>(null)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+
+  const calculate = async () => {
+    if (!dateFrom || !dateTo) return
+    setLoading(true); setError(''); setResult(null)
+    try {
+      const data = await adminApi.getRevenue(dateFrom, dateTo)
+      setResult(data)
+    } catch {
+      setError('Ошибка при загрузке данных')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-border">
+        <p className="font-medium text-text-primary text-sm flex items-center gap-2">
+          <Search size={15} className="text-accent" />
+          Выручка за произвольный период
+        </p>
+      </div>
+      <div className="p-5 flex flex-col gap-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-text-muted">С</label>
+            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+              className="px-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary focus:outline-none focus:border-border-focus transition-colors" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-text-muted">По</label>
+            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+              className="px-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary focus:outline-none focus:border-border-focus transition-colors" />
+          </div>
+          <button onClick={calculate} disabled={loading}
+            className="px-5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50">
+            {loading ? 'Считаю...' : 'Посчитать'}
+          </button>
+        </div>
+
+        {error && <p className="text-sm text-danger">{error}</p>}
+
+        {result && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-success/5 border border-success/20 rounded-lg p-4">
+              <p className="text-xs text-text-muted mb-1">Чистая выручка</p>
+              <p className="text-xl font-bold text-success">+{formatPrice(result.revenue)}</p>
+            </div>
+            <div className="bg-bg-elevated border border-border rounded-lg p-4">
+              <p className="text-xs text-text-muted mb-1">Продаж</p>
+              <p className="text-xl font-bold text-text-primary">{formatPrice(result.sales_total)}</p>
+              <p className="text-xs text-text-muted">{result.sales_count} шт</p>
+            </div>
+            <div className="bg-danger/5 border border-danger/20 rounded-lg p-4">
+              <p className="text-xs text-text-muted mb-1">Возвратов</p>
+              <p className="text-xl font-bold text-danger">-{formatPrice(result.returns_total)}</p>
+              <p className="text-xs text-text-muted">{result.returns_count} шт</p>
+            </div>
+            <div className="bg-bg-elevated border border-border rounded-lg p-4">
+              <p className="text-xs text-text-muted mb-1">Транзакций</p>
+              <p className="text-xl font-bold text-text-primary">{result.sales_count + result.returns_count}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 

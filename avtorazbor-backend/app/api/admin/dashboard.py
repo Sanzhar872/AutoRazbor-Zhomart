@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, jsonify, Response, request
 from sqlalchemy import select, func
 
 from app.extensions import db
@@ -51,6 +51,51 @@ def _sale_record(log: AuditLog, part: Part) -> dict:
         "sold_at":     log.created_at.isoformat() if log.created_at else None,
         "deleted_at":  log.deleted_at.isoformat() if log.deleted_at else None,
     }
+
+
+@bp.get("/revenue")
+@require_role("admin")
+def revenue_by_period() -> tuple[Response, int]:
+    try:
+        date_from = datetime.fromisoformat(request.args["date_from"]).replace(tzinfo=timezone.utc)
+        date_to   = datetime.fromisoformat(request.args["date_to"]).replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+    except (KeyError, ValueError):
+        return jsonify({"error": "Укажите date_from и date_to в формате YYYY-MM-DD"}), 400
+
+    sale_rows = db.session.execute(
+        select(AuditLog, Part)
+        .join(Part, Part.id == AuditLog.entity_id)
+        .where(
+            AuditLog.action == "part.stock.decrease",
+            AuditLog.deleted_at.is_(None),
+            AuditLog.created_at >= date_from,
+            AuditLog.created_at <= date_to,
+        )
+    ).all()
+    sales_total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
+    sales_count = sum(int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
+
+    return_rows = db.session.execute(
+        select(AuditLog, Part)
+        .join(Part, Part.id == AuditLog.entity_id)
+        .where(
+            AuditLog.action == "part.stock.return",
+            AuditLog.created_at >= date_from,
+            AuditLog.created_at <= date_to,
+        )
+    ).all()
+    returns_total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
+    returns_count = sum(int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
+
+    return jsonify({
+        "date_from":     date_from.date().isoformat(),
+        "date_to":       date_to.date().isoformat(),
+        "revenue":       max(0, int(sales_total - returns_total)),
+        "sales_total":   int(sales_total),
+        "returns_total": int(returns_total),
+        "sales_count":   sales_count,
+        "returns_count": returns_count,
+    }), 200
 
 
 @bp.get("/dashboard")
