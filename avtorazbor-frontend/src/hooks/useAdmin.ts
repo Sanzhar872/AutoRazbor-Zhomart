@@ -41,10 +41,10 @@ export function useAdminDashboard() {
   return useQuery({ queryKey: queryKeys.adminDashboard, queryFn: adminApi.getDashboard })
 }
 
-export function useAdminStock(q?: string) {
+export function useAdminStock(q?: string, page = 1) {
   return useQuery({
-    queryKey: [...queryKeys.adminStock, q ?? ''],
-    queryFn: () => adminApi.getStock(q),
+    queryKey: [...queryKeys.adminStock, q ?? '', page],
+    queryFn: () => adminApi.getStock(q, page),
   })
 }
 

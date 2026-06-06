@@ -32,10 +32,17 @@ class StockSetSchema(Schema):
 @require_role("admin")
 def list_stock() -> tuple[Response, int]:
     q = request.args.get("q", "").strip()
+    page = max(1, int(request.args.get("page", 1)))
+    per_page = min(50, int(request.args.get("per_page", 50)))
+
     stmt = select(Part).where(Part.deleted_at.is_(None)).order_by(Part.title)
     if q:
         stmt = stmt.where(Part.title.ilike(f"%{q}%"))
-    parts = list(db.session.execute(stmt).scalars())
+
+    total = db.session.execute(
+        select(func.count()).select_from(stmt.subquery())
+    ).scalar_one()
+    parts = list(db.session.execute(stmt.offset((page - 1) * per_page).limit(per_page)).scalars())
 
     # Bulk calculate net_sold per part (sold - returned)
     audit_rows = db.session.execute(
@@ -61,7 +68,8 @@ def list_stock() -> tuple[Response, int]:
             "max_favorite_slots": get_favorite_slots(part.stock),
             "net_sold": max(0, net_sold_map.get(part.id, 0)),
         })
-    return jsonify(result), 200
+    pages = (total + per_page - 1) // per_page
+    return jsonify({ "items": result, "total": total, "page": page, "pages": pages }), 200
 
 
 @bp.post("/<part_id>/increase")

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, Fragment, useEffect } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { Plus, Edit, Trash2, Search } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -72,16 +73,17 @@ export function PartsListPageClient() {
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 400)
+    const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 400)
     return () => clearTimeout(t)
   }, [search])
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.parts({ page: 1, per_page: 500, status: statusFilter, q: debouncedSearch }),
-    queryFn: () => partsApi.list({ page: 1, per_page: 500, status: statusFilter, q: debouncedSearch || undefined }),
+    queryKey: queryKeys.parts({ page, per_page: 50, status: statusFilter, q: debouncedSearch }),
+    queryFn: () => partsApi.list({ page, per_page: 50, status: statusFilter, q: debouncedSearch || undefined }),
   })
 
   const { data: categories } = useQuery({
@@ -257,6 +259,21 @@ export function PartsListPageClient() {
             </table>
           </div>
 
+          {data && data.pages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-xs text-text-muted">Стр. {page} из {data.pages} · {data.total} товаров</span>
+              <div className="flex gap-2">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
+                  <ChevronLeft size={14} />
+                </button>
+                <button onClick={() => setPage(p => Math.min(data.pages, p + 1))} disabled={page === data.pages}
+                  className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

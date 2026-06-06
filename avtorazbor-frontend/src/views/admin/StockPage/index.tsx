@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShoppingCart, RotateCcw, Package, Search } from 'lucide-react'
+import { ShoppingCart, RotateCcw, Package, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAdminStock, useStockChange } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -31,13 +31,15 @@ export function StockPageClient() {
   const [comment, setComment] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 400)
+    const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 400)
     return () => clearTimeout(t)
   }, [search])
 
-  const { data: items, isLoading } = useAdminStock(debouncedSearch || undefined)
+  const { data, isLoading } = useAdminStock(debouncedSearch || undefined, page)
+  const items = data?.items
   const { mutate: changeStock, isPending } = useStockChange()
 
   const open = (item: StockItem, m: ModalMode) => {
@@ -175,6 +177,21 @@ export function StockPageClient() {
               </tbody>
             </table>
           </div>
+          {data && data.pages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-xs text-text-muted">Стр. {page} из {data.pages} · {data.total} товаров</span>
+              <div className="flex gap-2">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
+                  <ChevronLeft size={14} />
+                </button>
+                <button onClick={() => setPage(p => Math.min(data.pages, p + 1))} disabled={page === data.pages}
+                  className="p-1.5 border border-border rounded-md disabled:opacity-40 hover:bg-bg-elevated transition-colors">
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
