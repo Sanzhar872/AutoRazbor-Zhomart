@@ -29,7 +29,7 @@ def decrease_stock(part_id: uuid.UUID, delta: int, actor_id: uuid.UUID, comment:
     _maybe_update_status(part)
     audit_service.log(
         "part.stock.decrease", "part", part_id, actor_id,
-        diff={"before": before, "after": part.stock, "delta": delta, "comment": comment},
+        diff={"before": before, "after": part.stock, "delta": delta, "comment": comment, "price_kzt": float(part.price_kzt)},
     )
     db.session.commit()
     return part

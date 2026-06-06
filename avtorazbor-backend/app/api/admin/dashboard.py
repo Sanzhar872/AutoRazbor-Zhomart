@@ -22,14 +22,20 @@ def _period_revenue(start: datetime) -> int:
             AuditLog.created_at >= start,
         )
     ).all()
-    total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
+    total = sum(
+        float((log.diff or {}).get("price_kzt") or part.price_kzt) * int((log.diff or {}).get("delta", 1))
+        for log, part in sale_rows
+    )
 
     return_rows = db.session.execute(
         select(AuditLog, Part)
         .join(Part, Part.id == AuditLog.entity_id)
         .where(AuditLog.action == "part.stock.return", AuditLog.created_at >= start)
     ).all()
-    total -= sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
+    total -= sum(
+        float((log.diff or {}).get("price_kzt") or part.price_kzt) * int((log.diff or {}).get("delta", 1))
+        for log, part in return_rows
+    )
 
     return max(0, int(total))
 
@@ -37,13 +43,14 @@ def _period_revenue(start: datetime) -> int:
 def _sale_record(log: AuditLog, part: Part) -> dict:
     diff = log.diff or {}
     delta = int(diff.get("delta", 1))
+    price = float(diff.get("price_kzt") or part.price_kzt)
     return {
         "id":          str(log.id),
         "part_id":     str(part.id),
         "title":       part.title,
         "slug":        part.slug,
-        "price_kzt":   part.price_kzt,
-        "profit":      part.price_kzt * delta,
+        "price_kzt":   price,
+        "profit":      price * delta,
         "delta":       delta,
         "stock_before": diff.get("before"),
         "stock_after":  diff.get("after"),
@@ -72,7 +79,7 @@ def revenue_by_period() -> tuple[Response, int]:
             AuditLog.created_at <= date_to,
         )
     ).all()
-    sales_total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
+    sales_total = sum(float((log.diff or {}).get("price_kzt") or part.price_kzt) * int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
     sales_count = sum(int((log.diff or {}).get("delta", 1)) for log, part in sale_rows)
 
     return_rows = db.session.execute(
@@ -84,7 +91,7 @@ def revenue_by_period() -> tuple[Response, int]:
             AuditLog.created_at <= date_to,
         )
     ).all()
-    returns_total = sum(part.price_kzt * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
+    returns_total = sum(float((log.diff or {}).get("price_kzt") or part.price_kzt) * int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
     returns_count = sum(int((log.diff or {}).get("delta", 1)) for log, part in return_rows)
 
     return jsonify({
