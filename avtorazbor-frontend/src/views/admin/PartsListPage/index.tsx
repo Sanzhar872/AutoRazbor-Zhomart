@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Fragment, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { Plus, Edit, Trash2, Search } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -104,6 +104,15 @@ export function PartsListPageClient() {
     onError: (e) => toast.error(getApiError(e)),
   })
 
+  const deleteAllMutation = useMutation({
+    mutationFn: partsApi.deleteAll,
+    onSuccess: () => {
+      toast.success('Все товары удалены')
+      qc.invalidateQueries({ queryKey: ['parts'] })
+    },
+    onError: (e) => toast.error(getApiError(e)),
+  })
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -115,6 +124,18 @@ export function PartsListPageClient() {
                 <span className="text-sm text-text-muted">({data.total})</span>
               )}
             </div>
+            <button
+              onClick={() => {
+                if (confirm('Удалить ВСЕ товары? Это действие нельзя отменить!')) {
+                  deleteAllMutation.mutate()
+                }
+              }}
+              disabled={deleteAllMutation.isPending}
+              className="flex items-center gap-1.5 px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/30 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
+            >
+              <AlertTriangle size={15} />
+              Очистить всё
+            </button>
             <Link
               href={ROUTES.ADMIN_PART_NEW}
               className="flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap"

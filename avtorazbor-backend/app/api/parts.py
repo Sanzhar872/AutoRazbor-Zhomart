@@ -80,6 +80,23 @@ def delete_part(part_id: str) -> tuple[Response, int]:
     return jsonify({"message": "Удалено"}), 200
 
 
+@bp.delete("/")
+@require_role("admin")
+def delete_all_parts() -> tuple[Response, int]:
+    from sqlalchemy import update
+    from datetime import datetime, timezone
+    from app.models.part import PartStatus
+    from app.extensions import db
+    now = datetime.now(timezone.utc)
+    db.session.execute(
+        update(part_service.Part)
+        .where(part_service.Part.deleted_at.is_(None))
+        .values(deleted_at=now, status=PartStatus.archived)
+    )
+    db.session.commit()
+    return jsonify({"message": "Все товары удалены"}), 200
+
+
 @bp.post("/<part_id>/images")
 @require_role("admin")
 def add_image(part_id: str) -> tuple[Response, int]:

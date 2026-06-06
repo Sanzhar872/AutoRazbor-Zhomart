@@ -19,4 +19,7 @@ export const partsApi = {
 
   delete: (id: string) =>
     client.delete(`/parts/${id}`),
+
+  deleteAll: () =>
+    client.delete('/parts/'),
 }
