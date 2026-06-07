@@ -158,7 +158,7 @@ function CustomRevenueWidget() {
     try {
       const [rev, salesData, returnsData] = await Promise.all([
         adminApi.getRevenue(dateFrom, dateTo),
-        adminApi.getSales({ status: 'active',   date_from: dateFrom, date_to: dateTo, per_page: 100 }),
+        adminApi.getSales({ date_from: dateFrom, date_to: dateTo, per_page: 100 }),
         adminApi.getSales({ status: 'returned', date_from: dateFrom, date_to: dateTo, per_page: 100 }),
       ])
       setResult(rev)

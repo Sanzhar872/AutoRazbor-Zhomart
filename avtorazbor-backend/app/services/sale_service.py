@@ -131,19 +131,18 @@ def list_sales(
 
 def revenue_for_period(date_from: datetime, date_to: datetime) -> dict:
     from app.models.part import Part
-    # Выручка = сумма активных продаж за период (только по существующим товарам)
+    # ВСЕ продажи за период (и active и returned) — сколько всего продали
     sales = db.session.execute(
         select(func.sum(Sale.total_kzt), func.count(Sale.id), func.sum(Sale.qty))
         .join(Part, Part.id == Sale.part_id)
         .where(
-            Sale.status == SaleStatus.active,
             Sale.created_at >= date_from,
             Sale.created_at <= date_to,
             Part.deleted_at.is_(None),
         )
     ).one()
 
-    # Возвраты за период (по дате возврата, только существующие товары)
+    # Возвраты за период (по дате возврата)
     returns = db.session.execute(
         select(func.sum(Sale.total_kzt), func.count(Sale.id), func.sum(Sale.qty))
         .join(Part, Part.id == Sale.part_id)

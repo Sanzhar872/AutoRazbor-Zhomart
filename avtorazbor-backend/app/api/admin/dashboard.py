@@ -13,11 +13,17 @@ bp = Blueprint("admin_dashboard", __name__, url_prefix="/api/v1/admin")
 
 
 def _period_revenue(date_from: datetime, date_to: datetime) -> float:
-    result = db.session.execute(
+    # Все продажи за период
+    sales = db.session.execute(
         select(func.coalesce(func.sum(Sale.total_kzt), 0))
-        .where(Sale.status == SaleStatus.active, Sale.created_at >= date_from, Sale.created_at <= date_to)
+        .where(Sale.created_at >= date_from, Sale.created_at <= date_to)
     ).scalar_one()
-    return float(result)
+    # Возвраты за период (по дате возврата)
+    returns = db.session.execute(
+        select(func.coalesce(func.sum(Sale.total_kzt), 0))
+        .where(Sale.status == SaleStatus.returned, Sale.returned_at >= date_from, Sale.returned_at <= date_to)
+    ).scalar_one()
+    return float(sales) - float(returns)
 
 
 @bp.get("/dashboard")
