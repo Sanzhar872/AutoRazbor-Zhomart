@@ -124,18 +124,7 @@ export function PartsListPageClient() {
                 <span className="text-sm text-text-muted">({data.total})</span>
               )}
             </div>
-            <button
-              onClick={() => {
-                if (confirm('Удалить ВСЕ товары? Это действие нельзя отменить!')) {
-                  deleteAllMutation.mutate()
-                }
-              }}
-              disabled={deleteAllMutation.isPending}
-              className="flex items-center gap-1.5 px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/30 text-sm font-medium rounded-md transition-colors whitespace-nowrap"
-            >
-              <AlertTriangle size={15} />
-              Очистить всё
-            </button>
+
             <Link
               href={ROUTES.ADMIN_PART_NEW}
               className="flex items-center gap-1.5 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors whitespace-nowrap"
