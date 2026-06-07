@@ -132,23 +132,38 @@ export function DashboardPageClient() {
   )
 }
 
+interface RevenueResult {
+  revenue: number
+  sales_total: number; sales_count: number; sales_qty: number
+  returns_total: number; returns_count: number; returns_qty: number
+}
+interface SaleItem {
+  id: string; title: string; qty: number; price_kzt: number; total_kzt: number
+  comment: string; created_at: string | null; returned_at: string | null
+}
+
 function CustomRevenueWidget() {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = new Date().toLocaleDateString('en-CA')
   const [dateFrom, setDateFrom] = useState(today)
   const [dateTo, setDateTo]     = useState(today)
-  const [result, setResult]     = useState<null | {
-    revenue: number; sales_total: number; returns_total: number
-    sales_count: number; returns_count: number
-  }>(null)
+  const [result, setResult]     = useState<RevenueResult | null>(null)
+  const [sales, setSales]       = useState<SaleItem[]>([])
+  const [returns, setReturns]   = useState<SaleItem[]>([])
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
 
   const calculate = async () => {
     if (!dateFrom || !dateTo) return
-    setLoading(true); setError(''); setResult(null)
+    setLoading(true); setError('')
     try {
-      const data = await adminApi.getRevenue(dateFrom, dateTo)
-      setResult(data)
+      const [rev, salesData, returnsData] = await Promise.all([
+        adminApi.getRevenue(dateFrom, dateTo),
+        adminApi.getSales({ status: 'active',   date_from: dateFrom, date_to: dateTo, per_page: 100 }),
+        adminApi.getSales({ status: 'returned', date_from: dateFrom, date_to: dateTo, per_page: 100 }),
+      ])
+      setResult(rev)
+      setSales(salesData.items ?? [])
+      setReturns(returnsData.items ?? [])
     } catch {
       setError('Ошибка при загрузке данных')
     } finally {
@@ -156,55 +171,129 @@ function CustomRevenueWidget() {
     }
   }
 
+  const hasData = result !== null
+
   return (
     <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
+      {/* Header */}
       <div className="px-5 py-3 border-b border-border">
         <p className="font-medium text-text-primary text-sm flex items-center gap-2">
           <Search size={15} className="text-accent" />
-          Выручка за произвольный период
+          Отчёт за период
         </p>
       </div>
-      <div className="p-5 flex flex-col gap-4">
+
+      <div className="p-5 flex flex-col gap-5">
+        {/* Date picker */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-text-muted">С</label>
+            <label className="text-xs text-text-muted font-medium">С</label>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
               className="px-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary focus:outline-none focus:border-border-focus transition-colors" />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-text-muted">По</label>
+            <label className="text-xs text-text-muted font-medium">По</label>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
               className="px-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary focus:outline-none focus:border-border-focus transition-colors" />
           </div>
           <button onClick={calculate} disabled={loading}
-            className="px-5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50">
+            className="flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50">
             {loading ? 'Считаю...' : 'Посчитать'}
           </button>
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
-        {result && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-success/5 border border-success/20 rounded-lg p-4">
-              <p className="text-xs text-text-muted mb-1">Чистая выручка</p>
-              <p className="text-xl font-bold text-success">+{formatPrice(result.revenue)}</p>
+        {hasData && (
+          <>
+            {/* Summary cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-success/5 border border-success/30 rounded-xl p-4 flex flex-col gap-1">
+                <p className="text-xs font-medium text-success uppercase tracking-wider">💰 Чистая выручка</p>
+                <p className="text-2xl font-bold text-success">
+                  {result!.revenue >= 0 ? '+' : ''}{formatPrice(result!.revenue)}
+                </p>
+                <p className="text-xs text-text-muted">{dateFrom} — {dateTo}</p>
+              </div>
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex flex-col gap-1">
+                <p className="text-xs font-medium text-blue-500 uppercase tracking-wider">📈 Продажи</p>
+                <p className="text-2xl font-bold text-text-primary">{formatPrice(result!.sales_total)}</p>
+                <p className="text-xs text-text-muted">{sales.length} позиций · {result!.sales_qty} шт</p>
+              </div>
+              <div className="bg-danger/5 border border-danger/20 rounded-xl p-4 flex flex-col gap-1">
+                <p className="text-xs font-medium text-danger uppercase tracking-wider">📉 Возвраты</p>
+                <p className="text-2xl font-bold text-danger">-{formatPrice(result!.returns_total)}</p>
+                <p className="text-xs text-text-muted">{returns.length} позиций · {result!.returns_qty} шт</p>
+              </div>
             </div>
-            <div className="bg-bg-elevated border border-border rounded-lg p-4">
-              <p className="text-xs text-text-muted mb-1">Продаж</p>
-              <p className="text-xl font-bold text-text-primary">{formatPrice(result.sales_total)}</p>
-              <p className="text-xs text-text-muted">{result.sales_count} шт</p>
+
+            {/* Lists */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Sales list */}
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-2.5 bg-blue-500/5 border-b border-border flex items-center justify-between">
+                  <span className="text-xs font-semibold text-blue-500 uppercase tracking-wider">Продажи</span>
+                  <span className="text-xs text-text-muted">{sales.length} позиций</span>
+                </div>
+                {sales.length === 0
+                  ? <p className="text-center text-text-muted text-sm py-6">Продаж нет</p>
+                  : (
+                    <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                      {sales.map((s) => (
+                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-elevated/50 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text-primary truncate">{s.title}</p>
+                            {s.comment && <p className="text-xs text-text-muted truncate">{s.comment}</p>}
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-sm font-bold text-text-primary">{formatPrice(s.total_kzt)}</p>
+                            <p className="text-xs text-text-muted">{s.qty} шт × {formatPrice(s.price_kzt)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                {sales.length > 0 && (
+                  <div className="px-4 py-2.5 bg-bg-elevated border-t border-border flex items-center justify-between">
+                    <span className="text-xs text-text-muted font-medium">Итого</span>
+                    <span className="text-sm font-bold text-blue-500">{formatPrice(result!.sales_total)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Returns list */}
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-2.5 bg-danger/5 border-b border-border flex items-center justify-between">
+                  <span className="text-xs font-semibold text-danger uppercase tracking-wider">Возвраты</span>
+                  <span className="text-xs text-text-muted">{returns.length} позиций</span>
+                </div>
+                {returns.length === 0
+                  ? <p className="text-center text-text-muted text-sm py-6">Возвратов нет</p>
+                  : (
+                    <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                      {returns.map((s) => (
+                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-elevated/50 transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text-primary truncate">{s.title}</p>
+                            {s.comment && <p className="text-xs text-text-muted truncate">{s.comment}</p>}
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-sm font-bold text-danger">-{formatPrice(s.total_kzt)}</p>
+                            <p className="text-xs text-text-muted">{s.qty} шт × {formatPrice(s.price_kzt)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                {returns.length > 0 && (
+                  <div className="px-4 py-2.5 bg-bg-elevated border-t border-border flex items-center justify-between">
+                    <span className="text-xs text-text-muted font-medium">Итого</span>
+                    <span className="text-sm font-bold text-danger">-{formatPrice(result!.returns_total)}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="bg-danger/5 border border-danger/20 rounded-lg p-4">
-              <p className="text-xs text-text-muted mb-1">Возвратов</p>
-              <p className="text-xl font-bold text-danger">-{formatPrice(result.returns_total)}</p>
-              <p className="text-xs text-text-muted">{result.returns_count} шт</p>
-            </div>
-            <div className="bg-bg-elevated border border-border rounded-lg p-4">
-              <p className="text-xs text-text-muted mb-1">Транзакций</p>
-              <p className="text-xl font-bold text-text-primary">{result.sales_count + result.returns_count}</p>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>

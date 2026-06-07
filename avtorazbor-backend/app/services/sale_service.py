@@ -92,10 +92,22 @@ def list_sales(
 
     if status:
         stmt = stmt.where(Sale.status == status)
-    if date_from:
-        stmt = stmt.where(Sale.created_at >= date_from)
-    if date_to:
-        stmt = stmt.where(Sale.created_at <= date_to)
+        # Возвраты фильтруем по дате возврата
+        if status == SaleStatus.returned:
+            if date_from:
+                stmt = stmt.where(Sale.returned_at >= date_from)
+            if date_to:
+                stmt = stmt.where(Sale.returned_at <= date_to)
+        else:
+            if date_from:
+                stmt = stmt.where(Sale.created_at >= date_from)
+            if date_to:
+                stmt = stmt.where(Sale.created_at <= date_to)
+    else:
+        if date_from:
+            stmt = stmt.where(Sale.created_at >= date_from)
+        if date_to:
+            stmt = stmt.where(Sale.created_at <= date_to)
 
     total = db.session.execute(
         select(func.count()).select_from(stmt.subquery())
