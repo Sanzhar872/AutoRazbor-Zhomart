@@ -22,15 +22,28 @@ export function DashboardPageClient() {
   return (
     <>
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-text-primary">Журнал</h1>
-          <Link
-            href={ROUTES.ADMIN_PART_NEW}
-            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors"
-          >
-            <Plus size={16} />
-            Добавить запчасть
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (!confirm('Удалить ВСЕ товары, продажи и журнал? Это нельзя отменить!')) return
+                await adminApi.resetAll()
+                window.location.reload()
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 bg-danger/10 hover:bg-danger text-danger hover:text-white border border-danger/30 text-sm font-medium rounded-md transition-colors"
+            >
+              <AlertTriangle size={15} />
+              Сбросить всё
+            </button>
+            <Link
+              href={ROUTES.ADMIN_PART_NEW}
+              className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-medium rounded-md transition-colors"
+            >
+              <Plus size={16} />
+              Добавить запчасть
+            </Link>
+          </div>
         </div>
 
         {/* Stats grid */}

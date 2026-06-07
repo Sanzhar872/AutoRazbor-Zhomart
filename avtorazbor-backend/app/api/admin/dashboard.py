@@ -113,6 +113,22 @@ def dashboard() -> tuple[Response, int]:
     }), 200
 
 
+@bp.delete("/reset")
+@require_role("admin")
+def reset_all() -> tuple[Response, int]:
+    from app.models.sale import Sale
+    from app.models.audit import AuditLog
+    from app.models.part import Part, PartImage, PartCarModel
+    from sqlalchemy import delete
+    db.session.execute(delete(Sale))
+    db.session.execute(delete(AuditLog))
+    db.session.execute(delete(PartImage))
+    db.session.execute(delete(PartCarModel))
+    db.session.execute(delete(Part))
+    db.session.commit()
+    return jsonify({"ok": True}), 200
+
+
 @bp.get("/revenue")
 @require_role("admin")
 def revenue_endpoint() -> tuple[Response, int]:

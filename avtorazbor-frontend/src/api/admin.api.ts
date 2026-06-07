@@ -77,4 +77,7 @@ export const adminApi = {
 
   getRevenue: (dateFrom: string, dateTo: string) =>
     client.get('/admin/revenue', { params: { date_from: dateFrom, date_to: dateTo } }).then((r) => r.data),
+
+  resetAll: () =>
+    client.delete('/admin/reset').then((r) => r.data),
 }
