@@ -51,7 +51,7 @@ export function PartFormPageClient({ id: slug }: Props) {
     enabled: isEdit,
   })
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { stock: 0, condition: 'good', status: 'active' },
   })
@@ -132,13 +132,21 @@ export function PartFormPageClient({ id: slug }: Props) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="Цена (₸) *"
-            type="number"
-            placeholder="25000"
-            error={errors.price_kzt?.message}
-            {...register('price_kzt')}
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-text-secondary">Цена (₸) *</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="25 000"
+              value={watch('price_kzt') ? Number(watch('price_kzt')).toLocaleString('ru-RU') : ''}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\s/g, '').replace(/[^\d]/g, '')
+                setValue('price_kzt', raw ? Number(raw) : 0, { shouldValidate: true })
+              }}
+              className="w-full bg-bg-input border border-border rounded-md px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-border-focus/30 transition-colors"
+            />
+            {errors.price_kzt && <p className="text-xs text-danger">{errors.price_kzt.message}</p>}
+          </div>
           <Input
             label="Количество"
             type="number"
