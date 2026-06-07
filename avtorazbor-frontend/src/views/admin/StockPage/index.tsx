@@ -1,13 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShoppingCart, RotateCcw, Package, Search, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useAdminStock, useStockChange } from '@/hooks/useAdmin'
+import { ShoppingCart, Package, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useAdminStock, useCreateSale } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { formatPrice } from '@/lib/formatPrice'
-import { getFavoriteSlots } from '@/lib/favoriteSlots'
 import { cn } from '@/lib/cn'
 
 interface StockItem {
@@ -19,19 +18,15 @@ interface StockItem {
   slug: string
   favorites_count: number
   max_favorite_slots: number
-  net_sold: number
 }
 
-type ModalMode = 'sold' | 'return' | null
-
 export function StockPageClient() {
-  const [selected, setSelected] = useState<StockItem | null>(null)
-  const [mode, setMode] = useState<ModalMode>(null)
-  const [qty, setQty] = useState('1')
-  const [comment, setComment] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [selected, setSelected] = useState<StockItem | null>(null)
+  const [qty, setQty] = useState('1')
+  const [comment, setComment] = useState('')
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 400)
@@ -39,45 +34,27 @@ export function StockPageClient() {
   }, [search])
 
   const { data, isLoading } = useAdminStock(debouncedSearch || undefined, page)
-  const items = Array.isArray(data) ? data : data?.items
+  const items = Array.isArray(data) ? data : data?.items ?? []
   const totalPages = Array.isArray(data) ? 1 : (data?.pages ?? 1)
-  const totalItems = Array.isArray(data) ? data?.length : (data?.total ?? 0)
-  const { mutate: changeStock, isPending } = useStockChange()
+  const totalItems = Array.isArray(data) ? items.length : (data?.total ?? 0)
 
-  const open = (item: StockItem, m: ModalMode) => {
+  const { mutate: createSale, isPending } = useCreateSale()
+
+  const open = (item: StockItem) => {
     setSelected(item)
-    setMode(m)
     setQty('1')
     setComment('')
   }
 
-  const close = () => {
-    setSelected(null)
-    setMode(null)
-    setQty('1')
-    setComment('')
-  }
+  const close = () => { setSelected(null); setQty('1'); setComment('') }
 
-  const handleConfirm = () => {
-    if (!selected || !qty || Number(qty) < 1) return
-    changeStock(
-      {
-        partId: selected.id,
-        action: mode === 'sold' ? 'decrease' : 'return',
-        value: Number(qty),
-        comment: comment || (mode === 'sold' ? 'Продано' : 'Возврат'),
-      },
+  const handleSell = () => {
+    if (!selected || Number(qty) < 1) return
+    createSale(
+      { partId: selected.id, qty: Number(qty), comment: comment || 'Продажа' },
       { onSuccess: close }
     )
   }
-
-  const stockAfter = selected
-    ? mode === 'sold'
-      ? selected.stock - Number(qty || 0)
-      : selected.stock + Number(qty || 0)
-    : 0
-
-  const stockAfterClamped = Math.max(0, stockAfter)
 
   return (
     <>
@@ -94,18 +71,9 @@ export function StockPageClient() {
             />
           </div>
           <div className="flex items-center gap-3 text-xs text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />
-              В наличии
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-warning inline-block" />
-              Мало
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-danger inline-block" />
-              Нет
-            </span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />В наличии</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-warning inline-block" />Мало</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-danger inline-block" />Нет</span>
           </div>
         </div>
 
@@ -124,17 +92,15 @@ export function StockPageClient() {
               <tbody className="divide-y divide-border">
                 {isLoading
                   ? Array.from({ length: 8 }).map((_, i) => (
-                      <tr key={i}>
-                        <td colSpan={5} className="px-4 py-3">
-                          <Skeleton className="h-5 w-full" />
-                        </td>
-                      </tr>
+                      <tr key={i}><td colSpan={5} className="px-4 py-3"><Skeleton className="h-5 w-full" /></td></tr>
                     ))
-                  : (items as StockItem[])?.map((item) => (
+                  : items.map((item: StockItem) => (
                       <tr key={item.id} className="hover:bg-bg-elevated/40 transition-colors group">
                         <td className="px-4 py-3 max-w-[240px]">
                           <p className="text-text-primary font-medium truncate">{item.title}</p>
-                          <p className="text-xs text-text-muted mt-0.5">{item.status === 'active' ? 'Активна' : item.status === 'sold_out' ? 'Нет в наличии' : 'Черновик'}</p>
+                          <p className="text-xs text-text-muted mt-0.5">
+                            {item.status === 'active' ? 'Активна' : item.status === 'sold_out' ? 'Нет в наличии' : 'Черновик'}
+                          </p>
                         </td>
                         <td className="px-4 py-3 text-right text-text-secondary whitespace-nowrap">
                           {formatPrice(item.price_kzt)}
@@ -144,10 +110,7 @@ export function StockPageClient() {
                             'inline-flex items-center gap-1 font-semibold text-base',
                             item.stock === 0 ? 'text-danger' : item.stock < 5 ? 'text-warning' : 'text-success'
                           )}>
-                            <span className={cn(
-                              'w-2 h-2 rounded-full',
-                              item.stock === 0 ? 'bg-danger' : item.stock < 5 ? 'bg-warning' : 'bg-success'
-                            )} />
+                            <span className={cn('w-2 h-2 rounded-full', item.stock === 0 ? 'bg-danger' : item.stock < 5 ? 'bg-warning' : 'bg-success')} />
                             {item.stock} шт
                           </span>
                         </td>
@@ -157,20 +120,12 @@ export function StockPageClient() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2 justify-end">
                             <button
-                              onClick={() => open(item, 'sold')}
+                              onClick={() => open(item)}
                               disabled={item.stock === 0}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <ShoppingCart size={13} />
                               Продать
-                            </button>
-                            <button
-                              onClick={() => open(item, 'return')}
-                              disabled={item.net_sold === 0}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-success/10 text-success border border-success/20 hover:bg-success hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              <RotateCcw size={13} />
-                              Вернуть
                             </button>
                           </div>
                         </td>
@@ -179,6 +134,7 @@ export function StockPageClient() {
               </tbody>
             </table>
           </div>
+
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-border">
               <span className="text-xs text-text-muted">Стр. {page} из {totalPages} · {totalItems} товаров</span>
@@ -197,100 +153,52 @@ export function StockPageClient() {
         </div>
       </div>
 
-      {/* Modal */}
-      <Modal
-        open={!!selected && !!mode}
-        onClose={close}
-        title={mode === 'sold' ? 'Отметить продажу' : 'Вернуть товар'}
-      >
+      <Modal open={!!selected} onClose={close} title="Отметить продажу">
         {selected && (
           <div className="flex flex-col gap-4">
-            {/* Part info */}
             <div className="flex items-start gap-3 p-3 rounded-lg border bg-success/5 border-success/20">
               <Package size={18} className="text-success mt-0.5" />
               <div>
                 <p className="font-medium text-text-primary text-sm">{selected.title}</p>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Текущий остаток: <strong className="text-text-primary">{selected.stock} шт</strong>
-                  {mode === 'return' && (
-                    <span className="ml-2">· Можно вернуть: <strong className="text-text-primary">{selected.net_sold} шт</strong></span>
-                  )}
+                  В наличии: <strong className="text-text-primary">{selected.stock} шт</strong>
+                  {' · '}Цена: <strong className="text-text-primary">{formatPrice(selected.price_kzt)}</strong>
                 </p>
               </div>
             </div>
 
-            {/* Quantity */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-text-secondary">
-                {mode === 'sold' ? 'Сколько единиц продано?' : 'Сколько единиц вернуть?'}
-              </label>
+              <label className="text-sm font-medium text-text-secondary">Сколько единиц продано?</label>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setQty(String(Math.max(1, Number(qty) - 1)))}
-                  className="w-9 h-9 rounded-md border border-border bg-bg-elevated text-text-primary hover:border-border-focus transition-colors text-lg font-bold flex items-center justify-center"
-                >
-                  −
-                </button>
+                <button type="button" onClick={() => setQty(String(Math.max(1, Number(qty) - 1)))}
+                  className="w-9 h-9 rounded-md border border-border bg-bg-elevated text-text-primary hover:border-border-focus transition-colors text-lg font-bold flex items-center justify-center">−</button>
                 <input
-                  type="number"
-                  min={1}
-                  max={mode === 'sold' ? selected.stock : selected.net_sold}
-                  value={qty}
-                  onChange={(e) => {
-                    const max = mode === 'sold' ? selected.stock : selected.net_sold
-                    const val = Math.max(1, Math.min(Number(e.target.value) || 1, max))
-                    setQty(String(val))
-                  }}
+                  type="number" min={1} max={selected.stock} value={qty}
+                  onChange={(e) => setQty(String(Math.max(1, Math.min(selected.stock, Number(e.target.value) || 1))))}
                   className="flex-1 text-center bg-bg-input border border-border rounded-md px-3 py-2 text-sm text-text-primary focus:outline-none focus:border-border-focus transition-colors font-semibold text-base"
                 />
-                <button
-                  type="button"
-                  onClick={() => setQty(String(Math.min(mode === 'sold' ? selected.stock : selected.net_sold, Number(qty) + 1)))}
-                  className="w-9 h-9 rounded-md border border-border bg-bg-elevated text-text-primary hover:border-border-focus transition-colors text-lg font-bold flex items-center justify-center"
-                >
-                  +
-                </button>
+                <button type="button" onClick={() => setQty(String(Math.min(selected.stock, Number(qty) + 1)))}
+                  className="w-9 h-9 rounded-md border border-border bg-bg-elevated text-text-primary hover:border-border-focus transition-colors text-lg font-bold flex items-center justify-center">+</button>
               </div>
             </div>
 
-            {/* Preview */}
-            {qty && Number(qty) > 0 && (
+            {Number(qty) > 0 && (
               <div className="flex items-center justify-between px-3 py-2 rounded-md bg-bg-elevated border border-border text-sm">
-                <span className="text-text-secondary">Остаток после:</span>
-                <span className={cn(
-                  'font-bold text-base',
-                  stockAfterClamped === 0 ? 'text-danger' : stockAfterClamped < 5 ? 'text-warning' : 'text-success'
-                )}>
-                  {stockAfterClamped} шт
-                  {mode === 'sold' && stockAfterClamped === 0 && (
-                    <span className="text-xs font-normal text-danger ml-1">(статус → «Нет в наличии»)</span>
-                  )}
-                </span>
+                <span className="text-text-secondary">Итого:</span>
+                <span className="font-bold text-success text-base">{formatPrice(selected.price_kzt * Number(qty))}</span>
               </div>
             )}
 
-            {/* Comment */}
             <input
-              type="text"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder={mode === 'sold' ? 'Комментарий (покупатель, договор...)' : 'Причина возврата...'}
+              type="text" value={comment} onChange={(e) => setComment(e.target.value)}
+              placeholder="Комментарий (покупатель, договор...)"
               className="w-full bg-bg-input border border-border rounded-md px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
             />
 
-            {/* Actions */}
             <div className="flex gap-2 pt-1">
-              <Button variant="secondary" onClick={close} className="flex-1">
-                Отмена
-              </Button>
-              <Button
-                onClick={handleConfirm}
-                loading={isPending}
-                disabled={!qty || Number(qty) < 1 || (mode === 'sold' && Number(qty) > selected.stock) || (mode === 'return' && Number(qty) > selected.net_sold)}
-                className="flex-1 bg-success hover:bg-success/80"
-              >
-                {mode === 'sold' ? `Продано ${qty} шт` : `Вернуть ${qty} шт`}
+              <Button variant="secondary" onClick={close} className="flex-1">Отмена</Button>
+              <Button onClick={handleSell} loading={isPending} disabled={!qty || Number(qty) < 1} className="flex-1 bg-success hover:bg-success/80">
+                Продано {qty} шт
               </Button>
             </div>
           </div>

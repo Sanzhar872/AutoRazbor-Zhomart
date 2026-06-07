@@ -6,6 +6,7 @@ from app.models.media import MediaAsset
 from app.models.part import Part, PartImage, PartCarModel, PartCondition, PartStatus
 from app.models.favorite import Favorite
 from app.models.audit import AuditLog
+from app.models.sale import Sale, SaleStatus
 
 __all__ = [
     "Base",
@@ -16,4 +17,5 @@ __all__ = [
     "Part", "PartImage", "PartCarModel", "PartCondition", "PartStatus",
     "Favorite",
     "AuditLog",
+    "Sale", "SaleStatus",
 ]

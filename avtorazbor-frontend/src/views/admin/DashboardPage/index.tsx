@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, ChevronDown, ChevronUp, Search } from 'lucide-react'
+import { Package, TrendingUp, AlertTriangle, Plus, ShoppingCart, TrendingDown, CalendarDays, CalendarRange, Calendar, Trash2, RotateCcw, Search } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { useAdminDashboard, useDeleteSale, useRestoreSale, usePermanentDeleteSale } from '@/hooks/useAdmin'
+import { useAdminDashboard, useReturnSale, useDeleteSale } from '@/hooks/useAdmin'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ROUTES } from '@/constants/routes'
 import { formatPrice } from '@/lib/formatPrice'
@@ -15,9 +15,9 @@ import type { ElementType } from 'react'
 
 export function DashboardPageClient() {
   const { data, isLoading } = useAdminDashboard()
-  const [trashOpen, setTrashOpen] = useState(false)
 
-  const hasDeleted = (data?.deleted_sales?.length ?? 0) > 0
+
+
 
   return (
     <>
@@ -77,31 +77,6 @@ export function DashboardPageClient() {
               )}
             </div>
 
-            {/* Trash */}
-            {!isLoading && hasDeleted && (
-              <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setTrashOpen((v) => !v)}
-                  className="w-full flex items-center justify-between px-5 py-3 border-b border-border hover:bg-bg-elevated/40 transition-colors"
-                >
-                  <p className="font-medium text-text-muted text-sm flex items-center gap-2">
-                    <Trash2 size={14} className="text-danger" />
-                    Корзина
-                    <span className="bg-danger/15 text-danger text-xs px-1.5 py-0.5 rounded-full font-semibold">
-                      {data?.deleted_sales.length}
-                    </span>
-                  </p>
-                  {trashOpen ? <ChevronUp size={14} className="text-text-muted" /> : <ChevronDown size={14} className="text-text-muted" />}
-                </button>
-                {trashOpen && (
-                  <div className="divide-y divide-border">
-                    {data?.deleted_sales.map((sale) => (
-                      <DeletedSaleRow key={sale.id} sale={sale} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Top favorites */}
@@ -260,7 +235,9 @@ function RevenueCard({ icon: Icon, label, value }: { icon: ElementType; label: s
 }
 
 function SaleRow({ sale }: { sale: SaleRecord }) {
-  const { mutate: deleteSale, isPending } = useDeleteSale()
+  const { mutate: returnSale, isPending: isReturning } = useReturnSale()
+  const { mutate: deleteSale, isPending: isDeleting } = useDeleteSale()
+  const isPending = isReturning || isDeleting
   const timeAgo = sale.sold_at
     ? formatDistanceToNow(new Date(sale.sold_at), { addSuffix: true, locale: ru })
     : ''
@@ -273,7 +250,9 @@ function SaleRow({ sale }: { sale: SaleRecord }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm text-text-primary truncate">{sale.title}</p>
-        <p className="text-xs text-text-muted truncate">{isReturn ? 'Возврат' : 'Продано'}{sale.comment ? ` · ${sale.comment}` : ''}</p>
+        <p className="text-xs text-text-muted truncate">
+          {isReturn ? 'Возврат' : 'Продано'}{sale.comment ? ` · ${sale.comment}` : ''}
+        </p>
       </div>
       <div className="flex-shrink-0 text-right">
         <p className={`text-sm font-bold ${isReturn ? 'text-warning' : 'text-success'}`}>
@@ -282,56 +261,26 @@ function SaleRow({ sale }: { sale: SaleRecord }) {
         <p className="text-xs text-text-muted">{sale.delta} шт · {timeAgo}</p>
       </div>
       {!isReturn && (
-        <button
-          onClick={() => deleteSale(sale.id)}
-          disabled={isPending}
-          title="Удалить в корзину"
-          className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 flex gap-1 transition-all">
+          <button
+            onClick={() => returnSale(sale.id)}
+            disabled={isPending}
+            title="Вернуть товар на склад"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-warning hover:bg-warning/10 transition-all disabled:opacity-40"
+          >
+            <RotateCcw size={13} />
+          </button>
+          <button
+            onClick={() => { if (confirm('Удалить запись? Склад восстановится.')) deleteSale(sale.id) }}
+            disabled={isPending}
+            title="Удалить (ошибочная запись)"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       )}
     </div>
   )
 }
 
-function DeletedSaleRow({ sale }: { sale: SaleRecord }) {
-  const { mutate: restoreSale, isPending: isRestoring } = useRestoreSale()
-  const { mutate: permanentDelete, isPending: isDeleting } = usePermanentDeleteSale()
-  const isPending = isRestoring || isDeleting
-  const deletedAgo = sale.deleted_at
-    ? formatDistanceToNow(new Date(sale.deleted_at), { addSuffix: true, locale: ru })
-    : ''
-
-  return (
-    <div className="flex items-center gap-3 px-5 py-2.5 opacity-60 hover:opacity-100 transition-opacity">
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-danger/10 flex items-center justify-center">
-        <Trash2 size={13} className="text-danger" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-text-primary truncate line-through">{sale.title}</p>
-        <p className="text-xs text-text-muted">удалено {deletedAgo}</p>
-      </div>
-      <div className="flex-shrink-0 text-right mr-1">
-        <p className="text-sm font-bold text-text-muted line-through">{formatPrice(sale.profit)}</p>
-        <p className="text-xs text-text-muted">{sale.delta} шт</p>
-      </div>
-      <button
-        onClick={() => restoreSale(sale.id)}
-        disabled={isPending}
-        title="Восстановить"
-        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-success hover:bg-success/10 transition-all disabled:opacity-40"
-      >
-        <RotateCcw size={14} />
-      </button>
-      <button
-        onClick={() => permanentDelete(sale.id)}
-        disabled={isPending}
-        title="Удалить навсегда"
-        className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-danger hover:bg-danger/10 transition-all disabled:opacity-40"
-      >
-        <Trash2 size={14} />
-      </button>
-    </div>
-  )
-}

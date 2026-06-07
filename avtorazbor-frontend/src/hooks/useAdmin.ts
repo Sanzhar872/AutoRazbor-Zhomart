@@ -4,39 +4,6 @@ import { adminApi } from '@/api/admin.api'
 import { queryKeys } from '@/constants/queryKeys'
 import { getApiError } from '@/api/client'
 
-export function useDeleteSale() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (auditId: string) => adminApi.deleteSale(auditId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
-    },
-    onError: (err) => toast.error(getApiError(err)),
-  })
-}
-
-export function useRestoreSale() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (auditId: string) => adminApi.restoreSale(auditId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
-    },
-    onError: (err) => toast.error(getApiError(err)),
-  })
-}
-
-export function usePermanentDeleteSale() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (auditId: string) => adminApi.permanentDeleteSale(auditId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
-    },
-    onError: (err) => toast.error(getApiError(err)),
-  })
-}
-
 export function useAdminDashboard() {
   return useQuery({ queryKey: queryKeys.adminDashboard, queryFn: adminApi.getDashboard })
 }
@@ -48,35 +15,68 @@ export function useAdminStock(q?: string, page = 1) {
   })
 }
 
-export function useStockChange() {
+export function useAdminSales(params?: { status?: string; date_from?: string; date_to?: string; page?: number }) {
+  return useQuery({
+    queryKey: ['admin-sales', params],
+    queryFn: () => adminApi.getSales(params),
+  })
+}
+
+// Продать товар
+export function useCreateSale() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({
-      partId,
-      action,
-      value,
-      comment,
-    }: {
-      partId: string
-      action: 'increase' | 'decrease' | 'set' | 'return'
-      value: number
-      comment?: string
-    }) => {
-      if (action === 'decrease') return adminApi.decreaseStock(partId, value, comment)
-      if (action === 'return') return adminApi.returnStock(partId, value, comment)
-      if (action === 'increase') return adminApi.increaseStock(partId, value, comment)
-      return adminApi.setStock(partId, value, comment)
-    },
-    onSuccess: (data, vars) => {
-      if (vars.action === 'decrease') {
-        toast.success(`Продано — остаток: ${data.stock_before} → ${data.stock_after} шт`)
-      } else if (vars.action === 'return') {
-        toast.success(`Возврат — остаток: ${data.stock_before} → ${data.stock_after} шт`)
-      } else {
-        toast.success(`Остаток установлен: ${data.stock_after} шт`)
-      }
+    mutationFn: ({ partId, qty, comment }: { partId: string; qty: number; comment?: string }) =>
+      adminApi.createSale(partId, qty, comment),
+    onSuccess: (data) => {
+      toast.success(`Продано ${data.qty} шт · ${data.total_kzt.toLocaleString('ru')} KZT`)
       qc.invalidateQueries({ queryKey: queryKeys.adminStock })
       qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+      qc.invalidateQueries({ queryKey: ['admin-sales'] })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
+// Вернуть продажу
+export function useReturnSale() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (saleId: string) => adminApi.returnSale(saleId),
+    onSuccess: (data) => {
+      toast.success(`Возврат: ${data.qty} шт · ${data.total_kzt.toLocaleString('ru')} KZT вычтено из выручки`)
+      qc.invalidateQueries({ queryKey: queryKeys.adminStock })
+      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+      qc.invalidateQueries({ queryKey: ['admin-sales'] })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
+// Удалить продажу (исправление ошибки)
+export function useDeleteSale() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (saleId: string) => adminApi.deleteSale(saleId),
+    onSuccess: () => {
+      toast.success('Запись удалена, склад восстановлен')
+      qc.invalidateQueries({ queryKey: queryKeys.adminStock })
+      qc.invalidateQueries({ queryKey: queryKeys.adminDashboard })
+      qc.invalidateQueries({ queryKey: ['admin-sales'] })
+    },
+    onError: (err) => toast.error(getApiError(err)),
+  })
+}
+
+// Увеличить склад вручную
+export function useIncreaseStock() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ partId, delta, comment }: { partId: string; delta: number; comment?: string }) =>
+      adminApi.increaseStock(partId, delta, comment),
+    onSuccess: (data) => {
+      toast.success(`Склад пополнен: ${data.stock} шт`)
+      qc.invalidateQueries({ queryKey: queryKeys.adminStock })
     },
     onError: (err) => toast.error(getApiError(err)),
   })

@@ -1,13 +1,17 @@
 import { client } from './client'
 
-export interface StockChangeResponse {
+export interface Sale {
+  id: string
   part_id: string
   title: string
-  stock_before: number
-  stock_after: number
-  max_favorites_before: number
-  max_favorites_after: number
-  changed_at: string
+  slug: string
+  qty: number
+  price_kzt: number
+  total_kzt: number
+  comment: string
+  status: 'active' | 'returned'
+  returned_at: string | null
+  created_at: string | null
 }
 
 export interface SaleRecord {
@@ -19,8 +23,6 @@ export interface SaleRecord {
   profit: number
   delta: number
   is_return: boolean
-  stock_before: number | null
-  stock_after: number | null
   comment: string
   sold_at: string | null
   deleted_at: string | null
@@ -39,41 +41,39 @@ export interface DashboardData {
   revenue: { today: number; week: number; month: number }
 }
 
+export interface StockChangeResponse {
+  part_id: string
+  title: string
+  stock: number
+  status: string
+}
+
 export const adminApi = {
   getDashboard: () =>
     client.get<DashboardData>('/admin/dashboard', { params: { tz: new Date().getTimezoneOffset() } }).then((r) => r.data),
 
+  // Stock
   getStock: (q?: string, page = 1) =>
     client.get('/admin/stock', { params: { ...(q ? { q } : {}), page, per_page: 50 } }).then((r) => r.data),
 
   increaseStock: (partId: string, delta: number, comment?: string) =>
-    client
-      .post<StockChangeResponse>(`/admin/stock/${partId}/increase`, { delta, comment })
-      .then((r) => r.data),
-
-  decreaseStock: (partId: string, delta: number, comment?: string) =>
-    client
-      .post<StockChangeResponse>(`/admin/stock/${partId}/decrease`, { delta, comment })
-      .then((r) => r.data),
+    client.post<StockChangeResponse>(`/admin/stock/${partId}/increase`, { delta, comment }).then((r) => r.data),
 
   setStock: (partId: string, stock: number, comment?: string) =>
-    client
-      .post<StockChangeResponse>(`/admin/stock/${partId}/set`, { stock, comment })
-      .then((r) => r.data),
+    client.post<StockChangeResponse>(`/admin/stock/${partId}/set`, { stock, comment }).then((r) => r.data),
 
-  returnStock: (partId: string, delta: number, comment?: string) =>
-    client
-      .post<StockChangeResponse>(`/admin/stock/${partId}/return`, { delta, comment })
-      .then((r) => r.data),
+  // Sales
+  getSales: (params?: { status?: string; date_from?: string; date_to?: string; page?: number; per_page?: number }) =>
+    client.get('/admin/sales', { params }).then((r) => r.data),
 
-  deleteSale: (auditId: string) =>
-    client.delete(`/admin/sales/${auditId}`).then((r) => r.data),
+  createSale: (partId: string, qty: number, comment?: string) =>
+    client.post<Sale>('/admin/sales', { part_id: partId, qty, comment: comment ?? '' }).then((r) => r.data),
 
-  restoreSale: (auditId: string) =>
-    client.post(`/admin/sales/${auditId}/restore`).then((r) => r.data),
+  returnSale: (saleId: string) =>
+    client.post<Sale>(`/admin/sales/${saleId}/return`).then((r) => r.data),
 
-  permanentDeleteSale: (auditId: string) =>
-    client.delete(`/admin/sales/${auditId}/permanent`).then((r) => r.data),
+  deleteSale: (saleId: string) =>
+    client.delete(`/admin/sales/${saleId}`).then((r) => r.data),
 
   getRevenue: (dateFrom: string, dateTo: string) =>
     client.get('/admin/revenue', { params: { date_from: dateFrom, date_to: dateTo } }).then((r) => r.data),
