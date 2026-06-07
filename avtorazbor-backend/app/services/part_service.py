@@ -182,7 +182,14 @@ def update_part(part_id: uuid.UUID, data: dict) -> Part:
 
 
 def soft_delete_part(part_id: uuid.UUID) -> None:
+    from app.models.sale import Sale
     part = get_part_by_id(part_id)
     part.deleted_at = datetime.now(timezone.utc)
     part.status = PartStatus.archived
+    # Удаляем все записи о продажах этого товара
+    db.session.execute(
+        db.select(Sale).where(Sale.part_id == part_id)
+    )
+    for sale in db.session.execute(db.select(Sale).where(Sale.part_id == part_id)).scalars():
+        db.session.delete(sale)
     db.session.commit()

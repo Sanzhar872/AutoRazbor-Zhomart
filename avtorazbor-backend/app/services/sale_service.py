@@ -87,8 +87,15 @@ def list_sales(
     page: int = 1,
     per_page: int = 50,
 ) -> tuple[list[Sale], int, int]:
-    from sqlalchemy.orm import selectinload
-    stmt = select(Sale).options(selectinload(Sale.part)).order_by(Sale.created_at.desc())
+    from sqlalchemy.orm import selectinload, joinedload
+    from app.models.part import Part
+    stmt = (
+        select(Sale)
+        .join(Part, Part.id == Sale.part_id)
+        .where(Part.deleted_at.is_(None))
+        .options(selectinload(Sale.part))
+        .order_by(Sale.created_at.desc())
+    )
 
     if status:
         stmt = stmt.where(Sale.status == status)
@@ -123,23 +130,28 @@ def list_sales(
 
 
 def revenue_for_period(date_from: datetime, date_to: datetime) -> dict:
-    # Выручка = сумма активных продаж за период
+    from app.models.part import Part
+    # Выручка = сумма активных продаж за период (только по существующим товарам)
     sales = db.session.execute(
         select(func.sum(Sale.total_kzt), func.count(Sale.id), func.sum(Sale.qty))
+        .join(Part, Part.id == Sale.part_id)
         .where(
             Sale.status == SaleStatus.active,
             Sale.created_at >= date_from,
             Sale.created_at <= date_to,
+            Part.deleted_at.is_(None),
         )
     ).one()
 
-    # Возвраты за период (по дате возврата)
+    # Возвраты за период (по дате возврата, только существующие товары)
     returns = db.session.execute(
         select(func.sum(Sale.total_kzt), func.count(Sale.id), func.sum(Sale.qty))
+        .join(Part, Part.id == Sale.part_id)
         .where(
             Sale.status == SaleStatus.returned,
             Sale.returned_at >= date_from,
             Sale.returned_at <= date_to,
+            Part.deleted_at.is_(None),
         )
     ).one()
 
