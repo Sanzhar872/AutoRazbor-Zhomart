@@ -1,4 +1,6 @@
 import uuid
+import csv
+import io
 from flask import Blueprint, jsonify, request, Response
 from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
 from marshmallow import ValidationError as MaValidationError
@@ -78,6 +80,62 @@ def update_part(part_id: str) -> tuple[Response, int]:
 def delete_part(part_id: str) -> tuple[Response, int]:
     part_service.soft_delete_part(uuid.UUID(part_id))
     return jsonify({"message": "Удалено"}), 200
+
+
+@bp.post("/import")
+@require_role("admin")
+def import_parts() -> tuple[Response, int]:
+    from app.extensions import db
+    from app.models.part import Part, PartStatus
+    from app.models.category import Category
+    from app.services.slug_service import make_unique_slug
+
+    body = request.get_json() or {}
+    items      = body.get("items", [])
+    category_id = body.get("category_id")
+    phone      = body.get("phone", "")
+    status     = body.get("status", "active")
+
+    if not items:
+        raise ValidationError("Нет товаров для импорта")
+    if not category_id:
+        raise ValidationError("Выберите категорию")
+
+    cat = db.session.get(Category, uuid.UUID(category_id))
+    if not cat:
+        raise ValidationError("Категория не найдена")
+
+    created = 0
+    skipped = 0
+    for row in items:
+        title = (row.get("title") or "").strip()
+        if not title:
+            skipped += 1
+            continue
+        try:
+            price = float(str(row.get("price", 0)).replace(" ", "").replace(",", ".") or 0)
+        except ValueError:
+            price = 0
+        try:
+            stock = int(str(row.get("qty", 1)).strip() or 1)
+        except ValueError:
+            stock = 1
+
+        slug = make_unique_slug(title)
+        part = Part(
+            title=title,
+            slug=slug,
+            price_kzt=price,
+            stock=stock,
+            category_id=uuid.UUID(category_id),
+            contact_phone=phone or None,
+            status=PartStatus.active if status == "active" else PartStatus.draft,
+        )
+        db.session.add(part)
+        created += 1
+
+    db.session.commit()
+    return jsonify({"created": created, "skipped": skipped}), 201
 
 
 @bp.delete("/")
