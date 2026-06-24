@@ -13,6 +13,7 @@ def register_blueprints(app: Flask) -> None:
     from app.api.admin.stock import bp as stock_bp
     from app.api.admin.dashboard import bp as dashboard_bp
     from app.api.admin.sales import bp as sales_bp
+    from app.api.setup import bp as setup_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
@@ -25,3 +26,4 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(stock_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(sales_bp)
+    app.register_blueprint(setup_bp)
