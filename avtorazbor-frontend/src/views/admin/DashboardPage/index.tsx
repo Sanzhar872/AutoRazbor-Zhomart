@@ -83,7 +83,7 @@ export function DashboardPageClient() {
                 <p className="text-center text-text-muted text-sm py-8">Продаж ещё не было</p>
               ) : (
                 <div className="divide-y divide-border">
-                  {data?.recent_sales.map((sale) => (
+                  {data?.recent_sales.filter(s => !s.is_return).map((sale) => (
                     <SaleRow key={sale.id} sale={sale} />
                   ))}
                 </div>
@@ -164,6 +164,7 @@ function CustomRevenueWidget() {
   const [returns, setReturns]   = useState<SaleItem[]>([])
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  const { mutate: returnSale }  = useReturnSale()
 
   const calculate = async () => {
     if (!dateFrom || !dateTo) return
@@ -253,15 +254,25 @@ function CustomRevenueWidget() {
                   : (
                     <div className="divide-y divide-border max-h-72 overflow-y-auto">
                       {sales.map((s) => (
-                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-elevated/50 transition-colors">
+                        <div key={s.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-elevated/50 transition-colors group">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-text-primary truncate">{s.title}</p>
-                            {s.comment && <p className="text-xs text-text-muted truncate">{s.comment}</p>}
+                            <p className="text-xs text-text-muted">
+                              {s.created_at ? new Date(s.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                              {s.comment ? ` · ${s.comment}` : ''}
+                            </p>
                           </div>
                           <div className="flex-shrink-0 text-right">
                             <p className="text-sm font-bold text-text-primary">{formatPrice(s.total_kzt)}</p>
                             <p className="text-xs text-text-muted">{s.qty} шт × {formatPrice(s.price_kzt)}</p>
                           </div>
+                          <button
+                            onClick={() => { if (confirm(`Вернуть «${s.title}»?`)) returnSale(s.id, { onSuccess: calculate }) }}
+                            title="Вернуть товар"
+                            className="flex-shrink-0 opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-warning hover:bg-warning/10 transition-all"
+                          >
+                            <RotateCcw size={13} />
+                          </button>
                         </div>
                       ))}
                     </div>
