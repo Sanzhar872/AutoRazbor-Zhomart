@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { ROUTES } from '@/constants/routes'
 
 const schema = z.object({
-  email: z.string().email('Неверный email'),
+  email: z.string().min(1, 'Введите email'),
   password: z.string().min(1, 'Введите пароль'),
 })
 
