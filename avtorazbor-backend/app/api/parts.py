@@ -132,6 +132,7 @@ def import_parts() -> tuple[Response, int]:
             status=PartStatus.active if status == "active" else PartStatus.draft,
         )
         db.session.add(part)
+        db.session.flush()
         created += 1
 
     db.session.commit()
