@@ -149,12 +149,20 @@ export function PartFormPageClient({ id: slug }: Props) {
             />
             {errors.price_kzt && <p className="text-xs text-danger">{errors.price_kzt.message}</p>}
           </div>
-          <Input
-            label="Количество"
-            type="number"
-            placeholder="0"
-            {...register('stock')}
-          />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-text-secondary">Количество</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              value={watch('stock') ? Number(watch('stock')).toLocaleString('ru-RU') : ''}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\s/g, '').replace(/[^\d]/g, '')
+                setValue('stock', raw ? Number(raw) : 0, { shouldValidate: true })
+              }}
+              className="w-full bg-bg-input border border-border rounded-md px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-border-focus/30 transition-colors"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
