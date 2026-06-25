@@ -238,6 +238,7 @@ function ImportModal({ open, onClose, categories, onSuccess }: {
 
 export function PartsListPageClient() {
   const [statusFilter, setStatusFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -251,8 +252,8 @@ export function PartsListPageClient() {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.parts({ page, per_page: 50, status: statusFilter, q: debouncedSearch, sort: 'category' }),
-    queryFn: () => partsApi.list({ page, per_page: 50, status: statusFilter, q: debouncedSearch || undefined, sort: 'category' }),
+    queryKey: queryKeys.parts({ page, per_page: 50, status: statusFilter, q: debouncedSearch, sort: 'category', category_id: categoryFilter }),
+    queryFn: () => partsApi.list({ page, per_page: 50, status: statusFilter, q: debouncedSearch || undefined, sort: 'category', category_id: categoryFilter || undefined }),
   })
 
   const { data: categories } = useQuery({
@@ -319,6 +320,19 @@ export function PartsListPageClient() {
                 className="w-full pl-8 pr-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-border-focus transition-colors"
               />
             </div>
+            <select
+              value={categoryFilter}
+              onChange={e => { setCategoryFilter(e.target.value); setPage(1) }}
+              className="px-3 py-2 text-sm bg-bg-input border border-border rounded-md text-text-primary focus:outline-none focus:border-border-focus transition-colors"
+            >
+              <option value="">Все категории</option>
+              {categories?.flatMap(c => [
+                <option key={c.id} value={c.id} disabled style={{ fontWeight: 600 }}>{c.name}</option>,
+                ...(c.children ?? []).map(sub => (
+                  <option key={sub.id} value={sub.id}>{'   — '}{sub.name}</option>
+                )),
+              ])}
+            </select>
             <div className="flex gap-1 bg-bg-elevated border border-border rounded-lg p-1 overflow-x-auto">
               {STATUS_OPTIONS.map((opt) => (
                 <button
