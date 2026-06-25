@@ -58,7 +58,7 @@ export interface PartFilters {
   price_max?: number
   oem?: string
   q?: string
-  sort?: 'newest' | 'price_asc' | 'price_desc' | 'stock_desc'
+  sort?: 'newest' | 'price_asc' | 'price_desc' | 'stock_desc' | 'category'
   priority?: number
   page?: number
   per_page?: number
