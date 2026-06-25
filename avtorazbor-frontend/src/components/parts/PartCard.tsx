@@ -14,6 +14,8 @@ interface PartCardProps {
 
 export function PartCard({ part }: PartCardProps) {
   const primaryImage = part.images.find((i) => i.is_primary) ?? part.images[0]
+  const dashIdx = part.title.lastIndexOf(' - ')
+  const carName = dashIdx !== -1 ? part.title.slice(dashIdx + 3) : null
 
   return (
     <Link
@@ -29,8 +31,11 @@ export function PartCard({ part }: PartCardProps) {
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-muted text-xs">
-            Нет фото
+          <div className="w-full h-full flex items-center justify-center p-3 text-center">
+            {carName
+              ? <span className="text-xs font-medium text-text-secondary leading-snug">{carName}</span>
+              : <span className="text-xs text-text-muted">Нет фото</span>
+            }
           </div>
         )}
         {part.stock === 0 && (

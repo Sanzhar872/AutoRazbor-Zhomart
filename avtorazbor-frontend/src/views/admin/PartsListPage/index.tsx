@@ -92,7 +92,7 @@ function parseText(raw: string, carName: string): ParsedRow[] {
     const price = parseFloat(priceRaw.replace(/\s/g, '').replace(',', '.'))
     if (!price || price <= 0) continue
     const qty = parseInt(cols[2] ?? '1') || 1
-    const title = carName.trim() ? `${carName.trim()} - ${partName}` : partName
+    const title = carName.trim() ? `${partName} - ${carName.trim()}` : partName
     rows.push({ title, price, qty })
   }
   return rows
