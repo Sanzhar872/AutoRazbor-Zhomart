@@ -127,7 +127,7 @@ function ImportModal({ open, onClose, categories, onSuccess }: {
         category_id: categoryId,
         phone,
         status,
-      })
+      }, { timeout: 60_000 })
       toast.success(`Импортировано ${res.data.created} товаров`)
       onSuccess()
       onClose()
