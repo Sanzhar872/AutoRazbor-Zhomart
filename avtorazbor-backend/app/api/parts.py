@@ -88,13 +88,14 @@ def import_parts() -> tuple[Response, int]:
     from app.extensions import db
     from app.models.part import Part, PartStatus
     from app.models.category import Category
-    from app.services.slug_service import make_unique_slug
+    from slugify import slugify
+    from sqlalchemy import text
 
     body = request.get_json() or {}
-    items      = body.get("items", [])
+    items       = body.get("items", [])
     category_id = body.get("category_id")
-    phone      = body.get("phone", "")
-    status     = body.get("status", "active")
+    phone       = body.get("phone", "")
+    status      = body.get("status", "active")
 
     if not items:
         raise ValidationError("Нет товаров для импорта")
@@ -105,7 +106,21 @@ def import_parts() -> tuple[Response, int]:
     if not cat:
         raise ValidationError("Категория не найдена")
 
-    created = 0
+    # Получаем все существующие слаги одним запросом
+    existing = {r[0] for r in db.session.execute(text("SELECT slug FROM parts")).fetchall()}
+    used: set[str] = set()
+
+    def unique_slug(title: str) -> str:
+        base = slugify(title, allow_unicode=False, max_length=190)
+        slug = base
+        counter = 1
+        while slug in existing or slug in used:
+            slug = f"{base}-{counter}"
+            counter += 1
+        used.add(slug)
+        return slug
+
+    parts = []
     skipped = 0
     for row in items:
         title = (row.get("title") or "").strip()
@@ -121,22 +136,19 @@ def import_parts() -> tuple[Response, int]:
         except ValueError:
             stock = 1
 
-        slug = make_unique_slug(title)
-        part = Part(
+        parts.append(Part(
             title=title,
-            slug=slug,
+            slug=unique_slug(title),
             price_kzt=price,
             stock=stock,
             category_id=uuid.UUID(category_id),
             contact_phone=phone or None,
             status=PartStatus.active if status == "active" else PartStatus.draft,
-        )
-        db.session.add(part)
-        db.session.flush()
-        created += 1
+        ))
 
+    db.session.add_all(parts)
     db.session.commit()
-    return jsonify({"created": created, "skipped": skipped}), 201
+    return jsonify({"created": len(parts), "skipped": skipped}), 201
 
 
 @bp.delete("/")
