@@ -24,6 +24,7 @@ def get_parts(
     oem: str | None = None,
     q: str | None = None,
     sort: str = "newest",
+    priority: int | None = None,
     page: int = 1,
     per_page: int = 20,
 ) -> tuple[list[Part], PaginationMeta]:
@@ -48,6 +49,8 @@ def get_parts(
         stmt = stmt.where(Part.price_kzt <= price_max)
     if oem:
         stmt = stmt.where(Part.oem_number.ilike(f"%{oem}%"))
+    if priority is not None:
+        stmt = stmt.where(Part.priority == priority)
     if q:
         stmt = stmt.where(
             or_(
@@ -73,13 +76,13 @@ def get_parts(
         )
 
     if sort == "price_asc":
-        stmt = stmt.order_by(Part.price_kzt.asc())
+        stmt = stmt.order_by(Part.priority.desc(), Part.price_kzt.asc())
     elif sort == "price_desc":
-        stmt = stmt.order_by(Part.price_kzt.desc())
+        stmt = stmt.order_by(Part.priority.desc(), Part.price_kzt.desc())
     elif sort == "stock_desc":
-        stmt = stmt.order_by(Part.stock.desc())
+        stmt = stmt.order_by(Part.priority.desc(), Part.stock.desc())
     else:
-        stmt = stmt.order_by(Part.created_at.desc())
+        stmt = stmt.order_by(Part.priority.desc(), Part.created_at.desc())
 
     total = db.session.execute(
         select(func.count()).select_from(stmt.subquery())

@@ -8,7 +8,7 @@ import { PartCardSkeleton } from '@/components/parts/PartCardSkeleton'
 import { ROUTES } from '@/constants/routes'
 
 export function FeaturedParts() {
-  const { data, isLoading } = useParts({ sort: 'newest', per_page: 8 })
+  const { data, isLoading } = useParts({ sort: 'newest', per_page: 8, priority: 4 })
 
   return (
     <section>

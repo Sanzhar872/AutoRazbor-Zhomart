@@ -17,6 +17,7 @@ bp = Blueprint("parts", __name__, url_prefix="/api/v1/parts")
 @bp.get("/")
 def list_parts() -> tuple[Response, int]:
     args = request.args
+    priority_raw = args.get("priority")
     items, meta = part_service.get_parts(
         category_id=_uuid_or_none(args.get("category_id")),
         make_id=_uuid_or_none(args.get("make_id")),
@@ -29,6 +30,7 @@ def list_parts() -> tuple[Response, int]:
         oem=args.get("oem"),
         q=args.get("q"),
         sort=args.get("sort", "newest"),
+        priority=int(priority_raw) if priority_raw else None,
         page=int(args.get("page", 1)),
         per_page=int(args.get("per_page", 20)),
     )

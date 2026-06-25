@@ -54,6 +54,7 @@ class PartPublicSchema(Schema):
     def get_status(self, obj): return _enum_val(obj.status)
     weight_kg = fields.Float(allow_none=True)
     contact_phone = fields.String(allow_none=True)
+    priority = fields.Integer()
     category = fields.Nested(CategoryBriefSchema)
     images = fields.List(fields.Nested(PartImageSchema))
     car_generations = fields.List(fields.Nested(CarGenerationBriefSchema))
@@ -72,6 +73,7 @@ class PartListItemSchema(Schema):
     status = fields.Method("get_status")
     category = fields.Nested(CategoryBriefSchema)
     images = fields.List(fields.Nested(PartImageSchema))
+    priority = fields.Integer()
     created_at = fields.DateTime()
 
     def get_condition(self, obj): return _enum_val(obj.condition)
@@ -96,6 +98,7 @@ class PartCreateSchema(Schema):
     )
     weight_kg = fields.Float(load_default=None, allow_none=True)
     contact_phone = fields.String(load_default=None, allow_none=True, validate=validate.Length(max=20))
+    priority = fields.Integer(load_default=2, validate=validate.OneOf([1, 2, 3, 4]))
     generation_ids = fields.List(fields.UUID(), load_default=[])
 
 
@@ -111,4 +114,5 @@ class PartUpdateSchema(Schema):
     status = fields.String(validate=validate.OneOf(["active", "sold_out", "draft", "archived"]))
     weight_kg = fields.Float(allow_none=True)
     contact_phone = fields.String(allow_none=True, validate=validate.Length(max=20))
+    priority = fields.Integer(validate=validate.OneOf([1, 2, 3, 4]))
     generation_ids = fields.List(fields.UUID())

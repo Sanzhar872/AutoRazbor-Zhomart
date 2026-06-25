@@ -44,6 +44,7 @@ class Part(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     )
     weight_kg: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
     contact_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=2)
     search_vector: Mapped[object | None] = mapped_column(TSVECTOR, nullable=True)
 
     category: Mapped["Category"] = relationship("Category")  # type: ignore[name-defined]

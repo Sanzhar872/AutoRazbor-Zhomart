@@ -24,6 +24,7 @@ const schema = z.object({
   stock: z.coerce.number().min(0).default(0),
   condition: z.enum(['good', 'fair', 'poor']).default('good'),
   status: z.enum(['active', 'draft', 'sold_out', 'archived']).default('active'),
+  priority: z.coerce.number().int().min(1).max(4).default(2),
   description: z.string().optional(),
   oem_number: z.string().optional(),
   sku: z.string().optional(),
@@ -66,6 +67,7 @@ export function PartFormPageClient({ id: slug }: Props) {
         stock: existingPart.stock,
         condition: existingPart.condition as FormData['condition'],
         status: existingPart.status as FormData['status'],
+        priority: existingPart.priority ?? 2,
         description: existingPart.description ?? '',
         oem_number: existingPart.oem_number ?? '',
         sku: existingPart.sku ?? '',
@@ -173,6 +175,17 @@ export function PartFormPageClient({ id: slug }: Props) {
               <option value="archived">Архив</option>
             </select>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-text-secondary">Приоритет показа</label>
+          <select {...register('priority')} className={sel}>
+            <option value={4}>⭐ Главная страница (высший)</option>
+            <option value={3}>🔼 Высокий</option>
+            <option value={2}>▶ Средний (по умолчанию)</option>
+            <option value={1}>🔽 Низкий</option>
+          </select>
+          <p className="text-xs text-text-muted">Товары с приоритетом «Главная» показываются в «Новых поступлениях»</p>
         </div>
 
         <Input label="OEM номер" placeholder="81150-06430" {...register('oem_number')} />

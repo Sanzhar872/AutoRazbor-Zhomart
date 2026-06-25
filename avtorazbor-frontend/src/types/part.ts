@@ -25,6 +25,7 @@ export interface Part {
   status: PartStatus
   weight_kg: number | null
   contact_phone: string | null
+  priority: number
   category: Category
   images: PartImage[]
   car_generations: CarGeneration[]
@@ -58,6 +59,7 @@ export interface PartFilters {
   oem?: string
   q?: string
   sort?: 'newest' | 'price_asc' | 'price_desc' | 'stock_desc'
+  priority?: number
   page?: number
   per_page?: number
 }
