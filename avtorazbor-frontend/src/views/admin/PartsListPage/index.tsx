@@ -86,7 +86,7 @@ function parseText(raw: string, carName: string): ParsedRow[] {
     const cols = line.split('\t').map(s => s.trim())
     const partName = cols[0]
     if (!partName) continue
-    if (partName.toLowerCase().startsWith('итого')) break
+    if (partName.toLowerCase().startsWith('итог')) break
     const priceRaw = cols[1] ?? ''
     if (!priceRaw || priceRaw === '—') continue
     const price = parseFloat(priceRaw.replace(/\s/g, '').replace(',', '.'))
