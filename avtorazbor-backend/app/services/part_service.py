@@ -75,7 +75,11 @@ def get_parts(
             CarModelM.make_id == make_id
         )
 
-    if sort == "price_asc":
+    if sort == "category":
+        stmt = stmt.join(Category, Category.id == Part.category_id).order_by(
+            Category.name.asc(), Part.created_at.desc()
+        )
+    elif sort == "price_asc":
         stmt = stmt.order_by(Part.priority.desc(), Part.price_kzt.asc())
     elif sort == "price_desc":
         stmt = stmt.order_by(Part.priority.desc(), Part.price_kzt.desc())

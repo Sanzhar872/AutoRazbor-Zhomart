@@ -242,6 +242,7 @@ export function PartsListPageClient() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [importOpen, setImportOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search.trim()); setPage(1) }, 400)
@@ -250,8 +251,8 @@ export function PartsListPageClient() {
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.parts({ page, per_page: 50, status: statusFilter, q: debouncedSearch }),
-    queryFn: () => partsApi.list({ page, per_page: 50, status: statusFilter, q: debouncedSearch || undefined }),
+    queryKey: queryKeys.parts({ page, per_page: 50, status: statusFilter, q: debouncedSearch, sort: 'category' }),
+    queryFn: () => partsApi.list({ page, per_page: 50, status: statusFilter, q: debouncedSearch || undefined, sort: 'category' }),
   })
 
   const { data: categories } = useQuery({
@@ -368,16 +369,27 @@ export function PartsListPageClient() {
                       </td>
                     </tr>
                   )
-                  : grouped.map((group) => (
-                    <Fragment key={`cat-${group.name}`}>
-                      <tr>
+                  : grouped.map((group) => {
+                    const key = `${group.parent ?? ''}-${group.name}`
+                    const isCollapsed = collapsed.has(key)
+                    return (
+                    <Fragment key={key}>
+                      <tr
+                        className="cursor-pointer select-none"
+                        onClick={() => setCollapsed(prev => {
+                          const next = new Set(prev)
+                          next.has(key) ? next.delete(key) : next.add(key)
+                          return next
+                        })}
+                      >
                         <td colSpan={7} className="px-4 py-2 bg-bg-elevated border-y border-border">
-                          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                          <span className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                            {isCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} className="rotate-90" />}
                             {group.parent && <>{group.parent} → </>}{group.name} ({group.items.length})
                           </span>
                         </td>
                       </tr>
-                      {group.items.map((part) => {
+                      {!isCollapsed && group.items.map((part) => {
                         const badge = STATUS_BADGE[part.status] ?? { label: part.status, variant: 'neutral' as const }
                         return (
                           <tr key={part.id} className="hover:bg-bg-elevated/50 transition-colors">
@@ -439,7 +451,7 @@ export function PartsListPageClient() {
                         )
                       })}
                     </Fragment>
-                  ))}
+                  )})}
               </tbody>
             </table>
           </div>
