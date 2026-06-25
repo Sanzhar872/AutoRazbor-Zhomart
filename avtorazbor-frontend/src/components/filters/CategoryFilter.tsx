@@ -81,8 +81,11 @@ function CategoryItem({
 
   const handleClick = () => {
     if (hasChildren) {
-      setOpen((v) => !v)
-      if (!isSelected) onChange(cat.id)
+      if (!open) {
+        setOpen(true)
+      } else {
+        onChange(isSelected ? undefined : cat.id)
+      }
     } else {
       onChange(isSelected ? undefined : cat.id)
     }
