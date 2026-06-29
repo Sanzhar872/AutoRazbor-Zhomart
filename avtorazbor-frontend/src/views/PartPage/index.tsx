@@ -81,14 +81,14 @@ export function PartPageClient({ slug }: Props) {
             <div className="flex items-center gap-2">
               <Link
                 href={ROUTES.ADMIN_PART_EDIT(slug)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-md text-text-secondary hover:bg-bg-elevated transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-white bg-orange-500 hover:bg-orange-400 active:scale-95 transition-all duration-150"
               >
                 <Pencil size={13} />
                 Редактировать
               </Link>
               <Link
                 href={`${ROUTES.ADMIN_STOCK}?q=${encodeURIComponent(part.title)}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-accent/40 rounded-md text-accent hover:bg-accent/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-400 hover:shadow-md active:scale-95 transition-all duration-150"
               >
                 <Package size={13} />
                 На склад
