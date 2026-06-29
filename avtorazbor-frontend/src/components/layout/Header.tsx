@@ -1,24 +1,20 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { Search, Heart, User, Sun, Moon, Settings } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Heart, User, Sun, Moon, Settings } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useAuthStore } from '@/store/auth.store'
 import { useThemeStore } from '@/store/theme.store'
 import { useConfig } from '@/hooks/useConfig'
 import { PhoneButton } from '@/components/phone/PhoneButton'
-import { SearchBar } from '@/components/search/SearchBar'
 
 export function Header() {
   const user = useAuthStore((s) => s.user)
   const { theme, toggleTheme } = useThemeStore()
   const { data: config } = useConfig()
-  const router = useRouter()
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith('/admin')
-  const isHome = pathname === '/'
-  const isCatalog = pathname === '/catalog'
 
   return (
     <header className="sticky top-0 z-40 bg-bg-surface border-b border-border transition-theme">
@@ -28,25 +24,12 @@ export function Header() {
             <span className="text-accent font-bold text-xl">АвтоРазбор</span>
           </Link>
 
-          {!isAdmin && !isHome && !isCatalog && (
-            <div className="hidden md:flex flex-1 max-w-xl">
-              <SearchBar />
-            </div>
-          )}
-
           <div className="flex items-center gap-1 ml-auto">
-            {config && (
+            {config && !isAdmin && (
               <div className="hidden lg:block">
                 <PhoneButton phone={config.contact_phone} display={config.contact_phone_display} />
               </div>
             )}
-
-            <button
-              onClick={() => router.push(ROUTES.SEARCH)}
-              className="md:hidden p-2 text-text-secondary hover:text-text-primary transition-colors rounded-md"
-            >
-              <Search size={20} />
-            </button>
 
             <button
               onClick={toggleTheme}
