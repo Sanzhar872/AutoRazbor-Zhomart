@@ -23,9 +23,25 @@ const SORT_OPTIONS = [
 ]
 
 export function CatalogPageClient() {
-  const [filters, setFilters] = useState<PartFilters>({ sort: 'newest', page: 1, per_page: 20 })
+  const [filters, setFilters] = useState<PartFilters>(() => {
+    const params = typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams()
+    return {
+      sort: 'newest',
+      page: 1,
+      per_page: 20,
+      category_id: params.get('category_id') ?? undefined,
+      q: params.get('q') ?? undefined,
+    }
+  })
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [searchInput, setSearchInput] = useState('')
+  const [searchInput, setSearchInput] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') ?? ''
+    }
+    return ''
+  })
   const { data, isLoading } = useParts(filters)
 
   const update = (patch: Partial<PartFilters>) =>
