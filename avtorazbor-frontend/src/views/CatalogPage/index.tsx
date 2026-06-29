@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { SlidersHorizontal, X, Search } from 'lucide-react'
 import { useParts } from '@/hooks/useParts'
 import { PartCard } from '@/components/parts/PartCard'
@@ -23,25 +24,16 @@ const SORT_OPTIONS = [
 ]
 
 export function CatalogPageClient() {
-  const [filters, setFilters] = useState<PartFilters>(() => {
-    const params = typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search)
-      : new URLSearchParams()
-    return {
-      sort: 'newest',
-      page: 1,
-      per_page: 20,
-      category_id: params.get('category_id') ?? undefined,
-      q: params.get('q') ?? undefined,
-    }
+  const searchParams = useSearchParams()
+  const [filters, setFilters] = useState<PartFilters>({
+    sort: 'newest',
+    page: 1,
+    per_page: 20,
+    category_id: searchParams.get('category_id') ?? undefined,
+    q: searchParams.get('q') ?? undefined,
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [searchInput, setSearchInput] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('q') ?? ''
-    }
-    return ''
-  })
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
   const { data, isLoading } = useParts(filters)
 
   const update = (patch: Partial<PartFilters>) =>

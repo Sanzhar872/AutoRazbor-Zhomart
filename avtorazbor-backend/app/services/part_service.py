@@ -40,7 +40,16 @@ def get_parts(
     if status:
         stmt = stmt.where(Part.status == status)
     if category_id:
-        stmt = stmt.where(Part.category_id == category_id)
+        child_ids = [
+            r[0] for r in db.session.execute(
+                select(Category.id).where(Category.parent_id == category_id)
+            ).fetchall()
+        ]
+        if child_ids:
+            from sqlalchemy import or_
+            stmt = stmt.where(or_(Part.category_id == category_id, Part.category_id.in_(child_ids)))
+        else:
+            stmt = stmt.where(Part.category_id == category_id)
     if condition:
         stmt = stmt.where(Part.condition == condition)
     if price_min is not None:
