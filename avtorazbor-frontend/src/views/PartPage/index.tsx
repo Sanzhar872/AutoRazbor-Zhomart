@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Phone, MessageCircle } from 'lucide-react'
+import { ChevronRight, Phone, MessageCircle, Pencil, Package } from 'lucide-react'
 import { usePart } from '@/hooks/useParts'
 import { resolveUrl } from '@/lib/resolveUrl'
 import { Spinner } from '@/components/ui/Spinner'
@@ -14,6 +14,7 @@ import { FavoriteSlotBar } from '@/components/favorites/FavoriteSlotBar'
 import { formatPrice } from '@/lib/formatPrice'
 import { ROUTES } from '@/constants/routes'
 import { useConfig } from '@/hooks/useConfig'
+import { useAuthStore } from '@/store/auth.store'
 
 const WA_TEXT = encodeURIComponent('Привет! Пишу с сайта, меня интересует…')
 
@@ -31,6 +32,8 @@ export function PartPageClient({ slug }: Props) {
   const { data: part, isLoading, error } = usePart(slug)
   const { data: config } = useConfig()
   const [activeIdx, setActiveIdx] = useState(0)
+  const user = useAuthStore(s => s.user)
+  const isAdmin = user?.role === 'admin'
 
   const sortedImages = part
     ? [...part.images].sort((a, b) => {
@@ -64,18 +67,35 @@ export function PartPageClient({ slug }: Props) {
   return (
     <>
       <PageContainer className="pb-32 md:pb-8">
-        <nav className="flex items-center gap-1.5 text-xs text-text-muted mb-4 flex-wrap">
-          <Link href={ROUTES.CATALOG} className="hover:text-text-secondary">Каталог</Link>
-          <ChevronRight size={12} />
-          <Link
-            href={`${ROUTES.CATALOG}?category_id=${part.category.id}`}
-            className="hover:text-text-secondary"
-          >
-            {part.category.name}
-          </Link>
-          <ChevronRight size={12} />
-          <span className="text-text-secondary truncate max-w-[200px]">{part.title}</span>
-        </nav>
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+          <nav className="flex items-center gap-1.5 text-xs text-text-muted flex-wrap">
+            <Link href={ROUTES.CATALOG} className="hover:text-text-secondary">Каталог</Link>
+            <ChevronRight size={12} />
+            <Link href={`${ROUTES.CATALOG}?category_id=${part.category.id}`} className="hover:text-text-secondary">
+              {part.category.name}
+            </Link>
+            <ChevronRight size={12} />
+            <span className="text-text-secondary truncate max-w-[200px]">{part.title}</span>
+          </nav>
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Link
+                href={ROUTES.ADMIN_PART_EDIT(slug)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-md text-text-secondary hover:bg-bg-elevated transition-colors"
+              >
+                <Pencil size={13} />
+                Редактировать
+              </Link>
+              <Link
+                href={`${ROUTES.ADMIN_STOCK}?q=${encodeURIComponent(part.title)}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-accent/40 rounded-md text-accent hover:bg-accent/10 transition-colors"
+              >
+                <Package size={13} />
+                На склад
+              </Link>
+            </div>
+          )}
+        </div>
 
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-3">

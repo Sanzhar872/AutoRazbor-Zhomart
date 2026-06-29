@@ -21,8 +21,13 @@ interface StockItem {
 }
 
 export function StockPageClient() {
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [search, setSearch] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') ?? ''
+    }
+    return ''
+  })
+  const [debouncedSearch, setDebouncedSearch] = useState(search)
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<StockItem | null>(null)
   const [qty, setQty] = useState('1')
